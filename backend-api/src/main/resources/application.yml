@@ -1,0 +1,75 @@
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+  tomcat:
+    max-http-form-post-size: 1MB
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  application:
+    name: dogmania-api
+
+  datasource:
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://localhost:5432/dogmania}
+    username: ${SUPABASE_DB_USER:dogmania_api}
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+# --- Segurança JWT ---
+dogmania:
+  storage:
+    enabled: ${STORAGE_ENABLED:false}
+    project-url: ${SUPABASE_URL:}
+    service-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+  bootstrap:
+    admin:
+      enabled: ${DOGMANIA_BOOTSTRAP_ADMIN_ENABLED:false}
+      email: ${DOGMANIA_BOOTSTRAP_ADMIN_EMAIL:}
+      password: ${DOGMANIA_BOOTSTRAP_ADMIN_PASSWORD:}
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+# --- CORS ---
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8081,http://127.0.0.1:8081,http://localhost:5173}
+
+# --- OpenAPI / Swagger ---
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
+    path: /api/v1/docs
+  swagger-ui:
+    enabled: ${API_DOCS_ENABLED:false}
+    path: /api/v1/swagger-ui
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# --- Logging ---
+logging:
+  level:
+    com.dogmania: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN

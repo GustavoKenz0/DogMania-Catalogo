@@ -1,0 +1,47 @@
+# Credentials: only templates belong in source control.
+**/.env
+**/.env.*
+!**/.env.example
+**/.dev.vars
+**/*.local
+**/.npmrc
+**/settings-security.xml
+**/.mvn/settings.xml
+**/application-local.*
+# Private keys, credential exports and local database/backups.
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/id_rsa
+**/id_ed25519
+**/*service-account*.json
+**/credentials*.json
+**/*.dump
+**/*.backup
+**/*.bak
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/backups/
+# Dependencies, caches and generated outputs.
+**/node_modules/
+**/target/
+**/dist/
+**/.output/
+**/.tanstack/
+**/.nitro/
+**/.vinxi/
+**/.wrangler/
+**/.bun-cache/
+**/.bun-tmp/
+# IDE and process artifacts.
+**/.idea/
+**/.vscode/
+**/.tools/
+**/*.log
+hs_err_pid*
+replay_pid*
+.DS_Store
