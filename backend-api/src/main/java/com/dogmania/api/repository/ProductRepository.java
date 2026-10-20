@@ -19,8 +19,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT p FROM Product p WHERE (:includeInactive = true OR p.active = true) " +
            "AND (:category IS NULL OR p.category = :category) " +
-           "AND (:term IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :term, '%')) " +
-           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :term, '%')))")
+           "AND (:term IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:term AS string), '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:term AS string), '%')))")
     Page<Product> search(@Param("term") String term, @Param("category") String category,
                          @Param("includeInactive") boolean includeInactive, Pageable pageable);
 

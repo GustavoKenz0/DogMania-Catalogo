@@ -35,6 +35,18 @@ ALTER ROLE dogmania_api LOGIN;
 \password dogmania_api
 ```
 
+No Windows, a alternativa sem instalar `psql` é o assistente
+`backend-api/setup-supabase.ps1`, após aplicar as duas migrations. Informe os
+parâmetros públicos `-PoolerHost` e `-ProjectRef`; as senhas são solicitadas
+ocultas no próprio terminal. Ele habilita apenas a role existente, com senha
+SCRAM-SHA-256, confere sua conexão e encaminha ao configurador local do backend.
+Ele recusa roles já habilitadas e preserva as permissões das migrations.
+Consulte `../backend-api/README.md` para requisitos, TLS e recuperação.
+O assistente usa o CA público oficial em `.private/supabase-prod-ca-2021.crt`
+com `sslrootcert` e `verify-full`. Alternativamente,
+`backend-api/complete-local.ps1` gera senhas e o documento privado de acessos
+quando essa entrega for solicitada pelo responsável; veja os detalhes no README da API.
+
 Configure apenas no ambiente do backend:
 
 ```text

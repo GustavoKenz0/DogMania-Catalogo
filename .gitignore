@@ -1,4 +1,5 @@
 # Credentials: only templates belong in source control.
+**/.private/
 **/.env
 **/.env.*
 !**/.env.example

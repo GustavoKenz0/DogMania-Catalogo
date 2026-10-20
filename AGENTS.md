@@ -27,6 +27,18 @@ Os relatórios já existentes são registros históricos, anteriores a essa regr
 Respeite também as instruções específicas de subdiretórios, incluindo o arquivo
 `Dogmania-Catalogo/AGENTS.md` e as orientações de integração com Lovable.
 
+## Documento privado de acessos
+
+O usuário solicitou expressamente um documento local com os acessos configurados.
+Essa entrega fica exclusivamente em `.private/ACESSOS_DO_SISTEMA.local.txt`,
+ignorada pelo Git e com permissões restritas. Nunca copie seu conteúdo para este
+arquivo, para `CONTEXTO_DO_PROJETO.md`, READMEs, commits, logs ou mensagens.
+Senhas existentes são digitadas pelo responsável em campo local oculto; senhas
+novas podem ser geradas criptograficamente. Registre no histórico apenas o caminho
+do documento, o estado da configuração e as verificações sem valores privados.
+Uma permissão ampla para configurar o computador não autoriza commit/push,
+publicação ou alteração de serviços alheios ao projeto.
+
 ## GitHub: aprovação obrigatória antes de commit e push
 
 Destino informado pelo usuário: `https://github.com/GustavoKenz0/DogMania-Catalogo.git`.

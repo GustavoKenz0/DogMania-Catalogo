@@ -22,7 +22,7 @@ tests/             simulações de segurança HTTP locais
 
 1. Instale JDK 21, Maven 3.9 e Bun. Tenha uma instância Supabase PostgreSQL de desenvolvimento.
 2. Faça backup de bancos existentes e siga [supabase/README.md](supabase/README.md) para aplicar as migrações em ordem e configurar a role de runtime `dogmania_api`. O Hibernate apenas valida o esquema.
-3. Configure no ambiente/IDE as variáveis de [backend-api/.env.example](backend-api/.env.example). Spring Boot não lê `.env` automaticamente. Use um segredo JWT aleatório, credenciais próprias e TLS com certificado validado.
+3. Configure no ambiente/IDE as variáveis de [backend-api/.env.example](backend-api/.env.example) ou execute `backend-api/configure-local.ps1` no Windows. O configurador cria um `.env.local` protegido e ignorado pelo Git; Spring lê esse arquivo ao iniciar na pasta `backend-api/`. Use credenciais próprias e TLS com certificado validado.
 4. Crie o primeiro administrador com o bootstrap temporário conforme [backend-api/README.md](backend-api/README.md), depois desative-o. Não há conta ou senha de demonstração.
 5. Em um terminal na pasta `backend-api`, execute:
 
@@ -31,6 +31,16 @@ mvn spring-boot:run
 ```
 
 A API usa `http://localhost:8080/api/v1`. Configure `CORS_ORIGINS` com a origem do frontend. Uploads Supabase são opcionais e exigem a configuração adicional descrita na documentação da API e do banco.
+
+No Windows, `.\start-local.ps1`, na pasta `backend-api/`, também inicia a API e
+encontra o Maven no cache Wrapper quando ele não está no PATH. Para conferir a
+configuração sem conectar, use `.\start-local.ps1 -Check`.
+
+No Windows, `backend-api/complete-local.ps1` oferece um fluxo para projeto novo
+já migrado, com geração de senhas e documento privado de acessos, mediante pedido
+do responsável. Veja [as instruções da API](backend-api/README.md).
+`.private/` contém dados locais sensíveis e não deve ser publicado nem incluído
+em relatórios, backups compartilhados ou mensagens.
 
 ## Executar frontend
 
