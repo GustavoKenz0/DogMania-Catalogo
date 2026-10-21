@@ -6,12 +6,14 @@ import com.dogmania.api.security.*;
 import com.dogmania.api.service.ProductService;
 import com.dogmania.api.service.UploadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.lang.NonNull;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,13 +38,17 @@ class ProductControllerTest {
     static final UUID ID=UUID.fromString("00000000-0000-4000-8000-000000000001");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
-    @MockBean ProductService products;
-    @MockBean CustomUserDetailsService users;
-    @MockBean UploadService uploads;
+    @MockitoBean ProductService products;
+    @MockitoBean CustomUserDetailsService users;
+    @MockitoBean UploadService uploads;
     ProductDTO product() {
         return ProductDTO.builder().id(ID).title("Coleira").description("Coleira ajustável")
             .price(new BigDecimal("49.90")).category("Acessórios")
             .image("https://example.com/coleira.jpg").active(true).build();
+    }
+    @NonNull
+    String json(ProductDTO payload) throws JsonProcessingException {
+        return Objects.requireNonNull(mapper.writeValueAsString(payload));
     }
     String token(String email,String secret,long expires,String issuer) {
         return Jwts.builder().subject(email).issuer(issuer).issuedAt(new Date(System.currentTimeMillis()-120000)).expiration(new Date(expires))
@@ -54,7 +60,7 @@ class ProductControllerTest {
         return "Bearer "+token("admin@example.test",SECRET,System.currentTimeMillis()+60000,"dogmania-api");
     }
     @Test void publicCatalogDoesNotCreateSession() throws Exception {
-        when(products.getProducts(any(),any(),any(Pageable.class))).thenReturn(new PageImpl<>(List.of(product())));
+        when(products.getProducts(any(),any(),any(Pageable.class))).thenReturn(new PageImpl<>(Objects.requireNonNull(List.of(product()))));
         var result=mvc.perform(get("/api/v1/products")).andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].title").value("Coleira")).andReturn();
         assertThat(result.getRequest().getSession(false)).isNull();
@@ -68,7 +74,7 @@ class ProductControllerTest {
             .andExpect(status().isForbidden());
     }
     @Test void anonymousCannotMutateOrReadAdminCatalog() throws Exception {
-        String body=mapper.writeValueAsString(product());
+        String body=json(product());
         mvc.perform(post("/api/v1/products").contentType("application/json").content(body)).andExpect(status().isUnauthorized());
         mvc.perform(put("/api/v1/products/{id}",ID).contentType("application/json").content(body)).andExpect(status().isUnauthorized());
         mvc.perform(delete("/api/v1/products/{id}",ID)).andExpect(status().isUnauthorized());
@@ -97,7 +103,7 @@ class ProductControllerTest {
         verifyNoInteractions(products);
     }
     @Test void adminCanCreateEditToggleDeleteWithoutSession() throws Exception {
-        String auth=auth("ADMIN",false), body=mapper.writeValueAsString(product());
+        String auth=auth("ADMIN",false), body=json(product());
         when(products.createProduct(any(),eq("admin@example.test"))).thenReturn(product());
         when(products.updateProduct(eq(ID),any(),eq("admin@example.test"))).thenReturn(product());
         when(products.setAvailability(ID,false,"admin@example.test")).thenReturn(product());
@@ -114,10 +120,10 @@ class ProductControllerTest {
         String auth=auth("ADMIN",false);
         ProductDTO invalid=product(); invalid.setTitle(""); invalid.setPrice(new BigDecimal("-10"));
         mvc.perform(post("/api/v1/products").header("Authorization",auth).contentType("application/json")
-            .content(mapper.writeValueAsString(invalid))).andExpect(status().isBadRequest());
+            .content(json(invalid))).andExpect(status().isBadRequest());
         invalid=product(); invalid.setImage("javascript:alert(1)");
         mvc.perform(post("/api/v1/products").header("Authorization",auth).contentType("application/json")
-            .content(mapper.writeValueAsString(invalid))).andExpect(status().isBadRequest());
+            .content(json(invalid))).andExpect(status().isBadRequest());
         mvc.perform(patch("/api/v1/products/{id}/availability",ID).header("Authorization",auth).contentType("application/json").content("{}"))
             .andExpect(status().isBadRequest());
         verifyNoInteractions(products);

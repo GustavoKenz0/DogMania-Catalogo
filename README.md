@@ -18,6 +18,19 @@ supabase/          migrações, storage e testes SQL
 tests/             simulações de segurança HTTP locais
 ```
 
+## Iniciar com dois cliques no Windows
+
+Com as dependências e o banco já configurados, dê dois cliques em
+**`Iniciar Dogmania.cmd`**, na raiz do projeto. O iniciador abre as janelas
+**Dogmania - Backend** e **Dogmania - Site**, aguarda os dois serviços responderem
+e abre `http://127.0.0.1:8081/` no navegador padrão.
+
+Mantenha as duas janelas abertas enquanto usar o sistema. Para encerrar, pressione
+**Ctrl+C** em cada janela ou feche ambas. Serviços já disponíveis são reaproveitados;
+portas ocupadas por serviços sem a resposta esperada são informadas, sem encerrar
+processos. O iniciador não instala dependências nem executa o provisionamento.
+O auxiliar `iniciar-local.ps1` deve permanecer junto ao arquivo `.cmd`.
+
 ## Preparar banco e API
 
 1. Instale JDK 21, Maven 3.9 e Bun. Tenha uma instância Supabase PostgreSQL de desenvolvimento.
@@ -52,6 +65,65 @@ bun run dev
 ```
 
 Abra `http://127.0.0.1:8081`. A vitrine é pública; `/admin` pede credenciais de administrador. `/dogmania-painel` é um atalho para o painel. Produtos são persistidos pela API no banco; não existe catálogo local de demonstração como fallback.
+
+## Projeto no VS Code
+
+Abra esta raiz como pasta do projeto. O código em uso está em `backend-api/`
+e `Dogmania-Catalogo/`. A pasta `.tools/` contém utilitários, logs e
+cópias antigas de revisão; ela não é outra instalação do sistema.
+
+`.vscode/settings.json` exclui as cópias temporárias da importação Java/Maven,
+da atualização de recursos, busca e observação de arquivos. Elas também ficam
+ocultas no explorador para evitar editar uma cópia em vez do código atual.
+Os diagnósticos do backend e do frontend reais continuam ativos.
+
+Se ainda houver avisos de uma importação antiga, use **Ctrl+Shift+P** →
+**Java: Clean Java Language Server Workspace** e confirme a reinicialização.
+Abra os arquivos Java da pasta `backend-api/src/`, não da cópia de revisão.
+Apenas este arquivo de configuração do editor, sem segredos ou caminhos pessoais,
+é versionado; os demais arquivos de `.vscode/` permanecem ignorados.
+
+### Erro de construtores Lombok no editor
+
+A extensão Java Red Hat 1.57.0 tem uma regressão com construtores gerados pelo
+Lombok em projetos Java 21 ([issue oficial #4521](https://github.com/redhat-developer/vscode-java/issues/4521)).
+A mensagem menciona Flexible Constructor Bodies/Java 25 mesmo sem esse recurso no código.
+A solução provisória aplicada neste computador foi instalar e fixar a extensão 1.56.0:
+
+```sh
+code --install-extension redhat.java@1.56.0 --force
+```
+
+Depois use **Ctrl+Shift+P** → **Developer: Reload Window**. Se restarem diagnósticos
+anteriores, execute **Java: Clean Java Language Server Workspace** e reinicie quando
+solicitado. A versão da extensão é uma configuração local, não é instalada pelo Git.
+Reavalie a atualização quando a correção oficial estiver disponível.
+
+O projeto continua em Java 21, com análise de nulidade habilitada. O arquivo
+`backend-api/lombok.config` faz o Lombok gerar contratos de nulidade Spring nos
+métodos auxiliares suportados, usando anotações já presentes nas dependências.
+
+## Produtos de exemplo e conferência de persistência
+
+No ambiente de desenvolvimento configurado, a ferramenta abaixo mantém seis produtos
+identificados por **[EXEMPLO]**, cinco ativos e um sem estoque. Os preços são fictícios
+e as fotografias ilustrativas. Ela testa a API e confere os registros por uma conexão
+JDBC independente ao banco configurado em `backend-api/.env.local`.
+
+```powershell
+.\tests\catalog\criar-e-validar-exemplos.ps1
+```
+
+Informe e-mail/senha do administrador nos prompts locais; a senha é oculta. Neste
+computador, a opção `-UseLocalCredentials` permite usar explicitamente o documento
+privado já existente, sem imprimir acessos. A ferramenta exige API iniciada, Java 21+
+e o driver PostgreSQL previamente resolvido pelas dependências Maven.
+
+**O comando grava dados no banco configurado.** Use em desenvolvimento. A repetição
+reaproveita exemplos idênticos; se um exemplo já tiver sido editado, interrompe para
+preservá-lo. O CRUD usa apenas um registro temporário próprio, removido ao concluir;
+as provas SQL de constraints são revertidas. Os seis exemplos ficam disponíveis no
+painel para uso manual. Nenhum administrador, migration ou senha é criado/alterado.
 
 ## Validação e publicação
 

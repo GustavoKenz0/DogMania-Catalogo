@@ -40,6 +40,9 @@ public class ProductDTO {
     @Size(max = 50)
     private String category;
 
+    @Size(min = 2, max = 80, message = "Subcategoria deve ter entre 2 e 80 caracteres")
+    private String subcategory;
+
     @Size(max = 50)
     private String badge;
 

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import java.util.Set;
+import java.util.Objects;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,14 +42,14 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDTO getProductById(UUID id) {
-        Product product = productRepository.findById(id).filter(p -> Boolean.TRUE.equals(p.getActive()))
+        Product product = productRepository.findById(Objects.requireNonNull(id, "O ID do produto é obrigatório")).filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
         return toDTO(product);
     }
 
     @Transactional(readOnly = true)
     public List<ProductDTO> getRelatedProducts(UUID id, int limit) {
-        Product current = productRepository.findById(id).filter(p -> Boolean.TRUE.equals(p.getActive()))
+        Product current = productRepository.findById(Objects.requireNonNull(id, "O ID do produto é obrigatório")).filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
         if (limit < 1 || limit > 20) throw new IllegalArgumentException("Limite deve estar entre 1 e 20");
@@ -68,6 +69,7 @@ public class ProductService {
                 .description(dto.getDescription())
                 .price(dto.getPrice())
                 .category(dto.getCategory())
+                .subcategory(normalizedSubcategory(dto.getSubcategory()))
                 .badge(dto.getBadge())
                 .image(dto.getImage())
                 .active(dto.getActive() != null ? dto.getActive() : true)
@@ -80,13 +82,14 @@ public class ProductService {
 
     @Transactional
     public ProductDTO updateProduct(UUID id, ProductDTO dto, String performedBy) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findById(Objects.requireNonNull(id, "O ID do produto é obrigatório"))
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
         product.setName(dto.getTitle().trim());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setCategory(dto.getCategory());
+        product.setSubcategory(normalizedSubcategory(dto.getSubcategory()));
         product.setBadge(dto.getBadge());
         product.setImage(dto.getImage());
         if (dto.getActive() != null) {
@@ -100,10 +103,10 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(UUID id, String performedBy) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findById(Objects.requireNonNull(id, "O ID do produto é obrigatório"))
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
 
-        productRepository.delete(product);
+        productRepository.delete(Objects.requireNonNull(product));
         auditService.logAction("DELETE_PRODUCT", "Product", product.getId(), performedBy, "Excluído produto " + product.getName());
     }
 
@@ -115,12 +118,16 @@ public class ProductService {
 
     @Transactional
     public ProductDTO setAvailability(UUID id, boolean active, String performedBy) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findById(Objects.requireNonNull(id, "O ID do produto é obrigatório"))
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
         product.setActive(active);
         Product saved = productRepository.save(product);
         auditService.logAction("SET_AVAILABILITY", "Product", id, performedBy, "active=" + active);
         return toDTO(saved);
+    }
+
+    private String normalizedSubcategory(String subcategory) {
+        return subcategory == null || subcategory.isBlank() ? null : subcategory.trim();
     }
 
     private String normalizedCategory(String category) {
@@ -142,6 +149,7 @@ public class ProductService {
                 .description(entity.getDescription())
                 .price(entity.getPrice())
                 .category(entity.getCategory())
+                .subcategory(entity.getSubcategory())
                 .badge(entity.getBadge())
                 .image(entity.getImage())
                 .active(entity.getActive())

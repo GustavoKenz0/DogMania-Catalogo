@@ -1,46 +1,95 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { SiteHeader } from "@/components/SiteHeader";
+import { CatalogHeader } from "@/components/CatalogHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CatalogGrid } from "@/components/CatalogGrid";
+import { isCategory, type Category, type CatalogCategory } from "@/features/products/model";
+import { isSubcategory } from "@/features/products/taxonomy";
 
 export const Route = createFileRoute("/produtos")({
   head: () => ({
     meta: [
       { title: "Produtos — Dogmania Pet Shop" },
-      { name: "description", content: "Catálogo completo de produtos da Dogmania: rações, brinquedos, higiene e acessórios para cães e gatos." },
+      {
+        name: "description",
+        content:
+          "Encontre produtos para cães, gatos, pássaros, peixes e outros pets. Rações, brinquedos e higiene na Dogmania.",
+      },
       { property: "og:title", content: "Produtos — Dogmania Pet Shop" },
-      { property: "og:description", content: "Catálogo completo: rações, brinquedos, higiene e acessórios." },
+      {
+        property: "og:description",
+        content: "Tudo para o seu pet: explore o catálogo por categoria e compre pelo WhatsApp.",
+      },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { busca?: string } => ({
-    busca:
-      typeof search.busca === "string" && search.busca.trim() ? search.busca : undefined,
-  }),
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { busca?: string; categoria?: Category; subcategoria?: string } => {
+    const categoria = isCategory(search.categoria) ? search.categoria : undefined;
+    return {
+      busca: typeof search.busca === "string" && search.busca.trim() ? search.busca : undefined,
+      categoria,
+      subcategoria:
+        categoria && isSubcategory(categoria, search.subcategoria)
+          ? search.subcategoria
+          : undefined,
+    };
+  },
   component: ProdutosPage,
 });
 
 function ProdutosPage() {
-  const { busca } = Route.useSearch();
-  const [query, setQuery] = useState(busca ?? "");
+  const { busca, categoria, subcategoria } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const activeCategory: CatalogCategory = categoria ?? "Todos";
+
+  const changeQuery = (value: string) => {
+    void navigate({
+      search: (previous) => ({ ...previous, busca: value || undefined }),
+      replace: true,
+      resetScroll: false,
+    });
+  };
+  const changeCategory = (value: CatalogCategory, subcategory?: string) => {
+    void navigate({
+      search: (previous) => ({
+        ...previous,
+        categoria: value === "Todos" ? undefined : value,
+        subcategoria: subcategory,
+      }),
+      resetScroll: false,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader query={query} onQueryChange={setQuery} />
+      <CatalogHeader
+        query={busca ?? ""}
+        onQueryChange={changeQuery}
+        activeCategory={activeCategory}
+        onCategoryChange={changeCategory}
+        activeSubcategory={subcategoria}
+      />
 
-      <section className="border-b border-border bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-        <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
-          <h1 className="font-display text-3xl font-extrabold md:text-4xl">
-            Todos os produtos
+      <section className="catalog-intro">
+        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
+          <p className="catalog-intro-eyebrow">Cuidado, carinho e boas escolhas</p>
+          <h1 className="mt-2 font-display text-2xl font-extrabold text-primary sm:text-3xl lg:text-4xl">
+            Tudo para o seu melhor amigo.
           </h1>
-          <p className="mt-2 max-w-prose text-primary-foreground/85">
-            Explore nosso catálogo completo e fale com a gente pelo WhatsApp para finalizar a compra.
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Escolha a categoria, encontre o que seu pet precisa e conte com a Dogmania pelo
+            WhatsApp.
           </p>
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-10">
-        <CatalogGrid query={query} />
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+        <CatalogGrid
+          query={busca ?? ""}
+          activeCategory={activeCategory}
+          activeSubcategory={subcategoria}
+          onClearSubcategory={() => changeCategory(activeCategory)}
+        />
       </main>
 
       <SiteFooter />

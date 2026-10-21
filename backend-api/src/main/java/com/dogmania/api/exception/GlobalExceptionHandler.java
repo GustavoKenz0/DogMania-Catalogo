@@ -3,6 +3,7 @@ package com.dogmania.api.exception;
 import com.dogmania.api.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "O arquivo de imagem é obrigatório", request);
     }
 
-    private ResponseEntity<ErrorResponseDTO> error(HttpStatus status, String message, HttpServletRequest request) {
+    private ResponseEntity<ErrorResponseDTO> error(@NonNull HttpStatus status, String message, HttpServletRequest request) {
         return ResponseEntity.status(status).body(ErrorResponseDTO.builder().timestamp(Instant.now())
                 .status(status.value()).error(status.getReasonPhrase()).message(message).path(request.getRequestURI()).build());
     }

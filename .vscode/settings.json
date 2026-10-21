@@ -1,0 +1,39 @@
+{
+    "java.compile.nullAnalysis.mode":  "automatic",
+    "java.import.exclusions":  [
+                                   "**/node_modules/**",
+                                   "**/.metadata/**",
+                                   "**/archetype-resources/**",
+                                   "**/META-INF/maven/**",
+                                   "**/.tools/**",
+                                   "**/.private/**"
+                               ],
+    "java.project.resourceFilters":  [
+                                         "node_modules",
+                                         "\\.git",
+                                         "\\.tools",
+                                         "\\.private"
+                                     ],
+    "java.configuration.updateBuildConfiguration":  "automatic",
+    "java.jdt.ls.lombokSupport.enabled":  true,
+    "maven.excludedFolders":  [
+                                  "**/.*",
+                                  "**/node_modules",
+                                  "**/target",
+                                  "**/bin",
+                                  "**/archetype-resources",
+                                  "**/.tools/**",
+                                  "**/.private/**"
+                              ],
+    "files.exclude":  {
+                          "**/.tools":  true
+                      },
+    "files.watcherExclude":  {
+                                 "**/.tools/**":  true,
+                                 "**/.private/**":  true
+                             },
+    "search.exclude":  {
+                           "**/.tools/**":  true,
+                           "**/.private/**":  true
+                       }
+}

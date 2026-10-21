@@ -41,6 +41,9 @@
 # IDE and process artifacts.
 **/.idea/
 **/.vscode/
+!/.vscode/
+/.vscode/*
+!/.vscode/settings.json
 **/.tools/
 **/*.log
 hs_err_pid*

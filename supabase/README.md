@@ -9,9 +9,9 @@ não recebem acesso às tabelas da aplicação. O catálogo público também pas
 
 1. Faça backup e valide a restauração antes de alterar um banco existente.
 2. Use uma conexão administrativa de migração, com TLS, fora do frontend.
-3. Execute na ordem `20261019_initial_schema.sql` e
-   `20261020000000_java_contract_and_access.sql`. Se a primeira já foi aplicada,
-   execute apenas a segunda. Registre quais versões foram aplicadas.
+3. Execute na ordem `20261019_initial_schema.sql`, `20261020000000_java_contract_and_access.sql` e
+   `20261020010000_product_subcategories.sql`. Em um banco já configurado,
+   aplique somente as versões pendentes e registre a execução.
 4. A segunda migração é transacional e preserva os registros. Corrija duplicidades
    de e-mail sem diferenciar maiúsculas/minúsculas, hashes inválidos ou preços NaN
    caso a migração rejeite dados existentes; não corte nem apague dados para fazê-la passar.
@@ -22,6 +22,20 @@ não recebem acesso às tabelas da aplicação. O catálogo público também pas
 A migração alinha `title` → `name`, adiciona `sort_order`, corrige os tamanhos de
 colunas e converte `SUPERADMIN` para `SUPER_ADMIN`. O campo `description` permanece
 `text`, preservando descrições já gravadas. O Java valida o limite para novos dados.
+
+## Subcategorias
+
+A terceira migration adiciona `products.subcategory` opcional (`varchar(80)`),
+com CHECK de 2 a 80 caracteres quando preenchida e índice parcial para produtos
+ativos. Produtos antigos podem continuar sem subcategoria. A migration classifica
+somente seis registros demonstrativos conhecidos, por UUID/nome exatos e somente
+quando o campo está vazio; não deduz a classificação dos demais produtos.
+
+O dropdown e o contrato Java voltaram a usar esta coluna em 21/10/2026. A migration
+já aplicada não precisa ser reexecutada. Produto sem subcategoria continua na
+categoria principal; filtros específicos usam somente classificações explícitas.
+O editor administrativo permite escolher a subcategoria adequada à categoria.
+Hibernate continua em `validate`; políticas RLS, grants e credenciais permanecem iguais.
 
 ## Conexão do servidor
 

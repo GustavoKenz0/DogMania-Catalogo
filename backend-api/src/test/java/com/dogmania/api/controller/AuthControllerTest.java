@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,8 +28,8 @@ class AuthControllerTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired PasswordEncoder encoder;
-    @MockBean AdminUserRepository users;
-    @MockBean AuditService audit;
+    @MockitoBean AdminUserRepository users;
+    @MockitoBean AuditService audit;
     AdminUser user(boolean active) {
         AdminUser user=AdminUser.builder().id(UUID.randomUUID()).name("Administrador").email("admin@example.test")
             .passwordHash(encoder.encode("local-test-password")).active(active).role(AdminUser.Role.ADMIN).build();

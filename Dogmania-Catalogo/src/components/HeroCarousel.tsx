@@ -7,6 +7,7 @@ import banner1 from "@/assets/banner-1.jpg";
 import banner2 from "@/assets/banner-2.jpg";
 import banner3 from "@/assets/banner-3.jpg";
 import { WHATSAPP_NUMBER } from "@/config/store";
+import type { Category } from "@/features/products/model";
 
 type Slide = {
   image: string;
@@ -14,7 +15,7 @@ type Slide = {
   title: string;
   highlight: string;
   description: string;
-  cta: { label: string; to?: string; href?: string };
+  cta: { label: string; category?: Category; href?: string };
   accent: "yellow" | "blue" | "cream";
 };
 
@@ -25,7 +26,7 @@ const SLIDES: Slide[] = [
     title: "Brinquedos",
     highlight: "até 50% OFF",
     description: "Para o seu pet brincar e você economizar.",
-    cta: { label: "Aproveite", to: "/produtos" },
+    cta: { label: "Aproveite", category: "Brinquedos" },
     accent: "yellow",
   },
   {
@@ -34,7 +35,7 @@ const SLIDES: Slide[] = [
     title: "Nutrição completa",
     highlight: "Atendimento em Maringá",
     description: "Rações para cães e gatos, com atendimento próximo de você.",
-    cta: { label: "Ver rações", to: "/produtos" },
+    cta: { label: "Ver rações", category: "Rações" },
     accent: "blue",
   },
   {
@@ -71,12 +72,12 @@ export function HeroCarousel() {
   }, [emblaApi]);
 
   return (
-    <section className="border-b border-border bg-gradient-to-b from-secondary/70 to-background py-4 sm:py-7">
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+    <section className="bg-background py-4 sm:py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="relative isolate">
           <div
             ref={emblaRef}
-            className="overflow-hidden rounded-[1.5rem] shadow-elegant ring-1 ring-foreground/10 sm:rounded-[2rem]"
+            className="overflow-hidden rounded-[1.5rem] shadow-sm ring-1 ring-border sm:rounded-[2rem]"
             aria-label="Destaques da Dogmania"
             aria-roledescription="carrossel"
           >
@@ -101,7 +102,7 @@ export function HeroCarousel() {
                     />
                     <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/20 via-transparent to-transparent sm:block" />
                     <div className="relative z-10 flex items-center bg-card sm:absolute sm:inset-y-0 sm:right-0 sm:w-[47%] sm:justify-end sm:bg-transparent sm:p-5 md:w-[44%] lg:p-7">
-                      <div className="w-full max-w-xl px-5 py-5 sm:rounded-2xl sm:bg-background/90 sm:px-7 sm:py-7 sm:shadow-xl sm:backdrop-blur-md md:px-8 md:py-8">
+                      <div className="w-full max-w-xl px-5 py-5 sm:rounded-2xl sm:bg-background/90 sm:px-7 sm:py-7 sm:shadow-sm sm:backdrop-blur-md md:px-8 md:py-8">
                         <span
                           className={
                             "inline-flex rounded-full px-3 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide shadow-sm sm:text-xs " +
@@ -113,15 +114,16 @@ export function HeroCarousel() {
                         <h2 className="mt-2 font-display text-[1.75rem] font-extrabold leading-[1.12] tracking-tight text-foreground sm:mt-3 sm:text-4xl lg:text-5xl">
                           {slide.title}
                         </h2>
-                        <p className="mt-1.5 font-display text-lg font-extrabold leading-tight text-accent sm:mt-2 sm:text-xl md:text-2xl">
+                        <p className="mt-1.5 font-display text-lg font-extrabold leading-tight text-primary sm:mt-2 sm:text-xl md:text-2xl">
                           {slide.highlight}
                         </p>
                         <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground sm:mt-3 md:text-base">
                           {slide.description}
                         </p>
-                        {slide.cta.to ? (
+                        {slide.cta.category ? (
                           <Link
-                            to={slide.cta.to}
+                            to="/produtos"
+                            search={{ categoria: slide.cta.category }}
                             className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-extrabold text-accent-foreground shadow-lg transition hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:mt-5 sm:bg-primary sm:text-primary-foreground"
                           >
                             {slide.cta.label}

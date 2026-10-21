@@ -36,6 +36,9 @@ public class Product {
     @Column(nullable = false, length = 50)
     private String category;
 
+    @Column(length = 80)
+    private String subcategory;
+
     @Column(nullable = false, length = 2048)
     private String image;
 

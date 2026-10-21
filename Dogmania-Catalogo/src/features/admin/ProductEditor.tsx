@@ -3,6 +3,7 @@ import { LoaderCircle, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CATEGORIES, type Category, type Product } from "@/features/products/model";
 import { api } from "@/lib/api";
+import { getSubcategories, isSubcategory } from "@/features/products/taxonomy";
 
 type ProductForm = Omit<Product, "id">;
 const field =
@@ -34,6 +35,7 @@ export function ProductEditor({
           image: product.image,
           price: product.price,
           category: product.category,
+          subcategory: product.subcategory,
           badge: product.badge,
           active: product.active,
         }
@@ -52,14 +54,27 @@ export function ProductEditor({
   async function upload(file?: File) {
     if (!file) return;
     setError("");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
       setError("Escolha uma foto JPG, PNG ou WebP de até 5 MB.");
       return;
     }
-    setBusy(true); setUploading(true);
-    try { update("image", (await api.uploadImage(file)).url); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : "Não foi possível enviar a foto. Tente novamente."); }
-    finally { setBusy(false); setUploading(false); }
+    setBusy(true);
+    setUploading(true);
+    try {
+      update("image", (await api.uploadImage(file)).url);
+    } catch (failure) {
+      setError(
+        failure instanceof Error
+          ? failure.message
+          : "Não foi possível enviar a foto. Tente novamente.",
+      );
+    } finally {
+      setBusy(false);
+      setUploading(false);
+    }
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -86,6 +101,7 @@ export function ProductEditor({
         description: form.description.trim(),
         image: form.image.trim(),
         badge: form.badge?.trim() || undefined,
+        subcategory: form.subcategory?.trim() || undefined,
       });
     } catch (failure) {
       setError(
@@ -170,7 +186,13 @@ export function ProductEditor({
                   <select
                     className={field}
                     value={form.category}
-                    onChange={(e) => update("category", e.target.value as Category)}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        category: e.target.value as Category,
+                        subcategory: undefined,
+                      }))
+                    }
                   >
                     {!CATEGORIES.includes(form.category) && <option>{form.category}</option>}
                     {CATEGORIES.map((category) => (
@@ -179,6 +201,27 @@ export function ProductEditor({
                   </select>
                 </label>
               </div>
+              <label className="block text-sm font-bold">
+                Subcategoria
+                <select
+                  className={field}
+                  value={form.subcategory ?? ""}
+                  onChange={(e) => update("subcategory", e.target.value || undefined)}
+                >
+                  <option value="">Sem subcategoria</option>
+                  {form.subcategory && !isSubcategory(form.category, form.subcategory) && (
+                    <option value={form.subcategory}>{form.subcategory}</option>
+                  )}
+                  {getSubcategories(form.category).map(({ label }) => (
+                    <option key={label} value={label}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                  Define em qual opção do menu este produto será encontrado.
+                </span>
+              </label>
               <label className="block text-sm font-bold">
                 Descrição <span className="text-destructive">*</span>
                 <textarea
@@ -213,9 +256,19 @@ export function ProductEditor({
                 </p>
                 <label className="mt-3 flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-primary/30 bg-primary/5 p-3 text-sm font-bold text-primary">
                   {uploading ? "Enviando foto…" : "Escolher foto do dispositivo"}
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { void upload(event.target.files?.[0]); event.target.value = ""; }} />
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                      void upload(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
                 </label>
-                <p className="mt-2 text-xs text-muted-foreground">JPG, PNG ou WebP. Máximo de 5 MB.</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  JPG, PNG ou WebP. Máximo de 5 MB.
+                </p>
                 {form.image.startsWith("https://") && (
                   <div className="mt-4 flex items-center gap-4">
                     {!imageFailed ? (

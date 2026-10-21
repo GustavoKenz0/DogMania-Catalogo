@@ -114,6 +114,17 @@ Bootstrap é opcional. Após o primeiro login, desative-o e remova sua senha do 
 
 O Hibernate somente valida o esquema (`ddl-auto=validate`). Ele não executa migrações nem altera as tabelas automaticamente.
 
+## Subcategorias do catálogo
+
+A migration `20261020010000_product_subcategories.sql` deve estar aplicada antes de
+iniciar a API com o campo opcional `subcategory`. Esta instalação já está migrada.
+O DTO recebe/retorna o campo e o serviço persiste criação/edição; valores preenchidos
+têm limite de 2 a 80 caracteres. Omitir/null em uma atualização completa remove
+esta classificação. Opções e relações explícitas entre animais e departamentos
+ficam em `src/features/products/taxonomy.ts` do frontend. A API continua filtrando
+`category` como categoria persistida; a seleção combinada de subcategoria é aplicada
+no catálogo sobre os produtos retornados. Não há inferência pelo nome do produto.
+
 ## Primeiro administrador
 
 O bootstrap é opcional, sem conta ou senha de demonstração. Defina `DOGMANIA_BOOTSTRAP_ADMIN_ENABLED=true`, e-mail válido e senha de pelo menos 16 caracteres (máximo 72 bytes UTF-8). Execute uma vez e, depois, desative o bootstrap e remova a senha das variáveis. Um e-mail já existente não é atualizado nem tem sua senha trocada pelo bootstrap. Não existe endpoint público para cadastrar administradores.
@@ -136,7 +147,7 @@ O bootstrap é opcional, sem conta ou senha de demonstração. Defina `DOGMANIA_
 
 Listagens recebem `q`, `category`, `page`, `size` e `sort`. O retorno segue `Page`: `content`, `totalElements`, `totalPages`, `number`, `size`. O tamanho é limitado a 100. Ordenações aceitas: `createdAt`, `updatedAt`, `name`, `price`, `category`, `sortOrder`, `id`.
 
-Produto: `title` (até 150 caracteres, alias de entrada `name`), `description` (obrigatória, até 2000), `price` (positivo, até 8 inteiros e 2 casas decimais), `category` (até 50), `image` (URL HTTPS até 2048), `badge` (opcional, até 50) e `active`. O campo Java/banco é `name`; JSON utiliza `title` para preservar compatibilidade com a vitrine.
+Produto: `title` (até 150 caracteres, alias de entrada `name`), `description` (obrigatória, até 2000), `price` (positivo, até 8 inteiros e 2 casas decimais), `category` (até 50), `subcategory` (opcional, 2–80 caracteres), `image` (URL HTTPS até 2048), `badge` (opcional, até 50) e `active`. O campo Java/banco é `name`; JSON utiliza `title` para preservar compatibilidade com a vitrine.
 
 ## Upload opcional
 

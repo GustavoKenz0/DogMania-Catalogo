@@ -1,68 +1,75 @@
-import { useMemo, useState } from "react";
-import { CATEGORIES, type Category } from "@/features/products/model";
+import { useMemo } from "react";
+import type { CatalogCategory } from "@/features/products/model";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/hooks/useProducts";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
+import { matchesCatalogCategory } from "@/features/products/taxonomy";
 
-export function CatalogGrid({ query }: { query: string }) {
-  const [activeCategory, setActiveCategory] = useState<Category | "Todos">("Todos");
+export function CatalogGrid({
+  query,
+  activeCategory = "Todos",
+  activeSubcategory,
+  onClearSubcategory,
+}: {
+  query: string;
+  activeCategory?: CatalogCategory;
+  activeSubcategory?: string;
+  onClearSubcategory?: () => void;
+}) {
   const { products, isLoading, error, refetch } = useProducts();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
-      const matchCat = activeCategory === "Todos" || p.category === activeCategory;
+      const matchCat = matchesCatalogCategory(p, activeCategory, activeSubcategory);
       const matchQ =
         !q ||
         p.name.toLowerCase().includes(q) ||
         (p.description && p.description.toLowerCase().includes(q));
       return p.active !== false && matchCat && matchQ;
     });
-  }, [query, activeCategory, products]);
+  }, [query, activeCategory, activeSubcategory, products]);
 
   return (
-    <section aria-labelledby="catalog-heading" className="w-full">
+    <section
+      id="catalog-results"
+      aria-labelledby="catalog-heading"
+      className="catalog-results w-full"
+    >
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2
             id="catalog-heading"
             className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
           >
-            Catálogo de Produtos
+            {activeSubcategory
+              ? `${activeCategory} · ${activeSubcategory}`
+              : activeCategory === "Todos"
+                ? "Todos os produtos"
+                : `Produtos · ${activeCategory}`}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="mt-1 text-sm text-muted-foreground"
+          >
             {isLoading
               ? "Carregando catálogo..."
               : `${filtered.length} ${filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}`}
           </p>
         </div>
-      </div>
-
-      {/* Filtro por Categorias */}
-      <div
-        className="mb-8 flex flex-wrap items-center gap-2"
-        role="tablist"
-        aria-label="Filtrar por categorias"
-      >
-        {(["Todos", ...CATEGORIES] as const).map((cat) => {
-          const active = activeCategory === cat;
-          return (
-            <button
-              key={cat}
-              role="tab"
-              aria-selected={active}
-              onClick={() => setActiveCategory(cat)}
-              className={
-                "rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary " +
-                (active
-                  ? "bg-primary text-primary-foreground shadow-md scale-105"
-                  : "bg-secondary text-secondary-foreground hover:bg-muted hover:scale-102")
-              }
-            >
-              {cat}
-            </button>
-          );
-        })}
+        {activeSubcategory && onClearSubcategory && (
+          <button
+            type="button"
+            onClick={onClearSubcategory}
+            className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-primary/15 bg-secondary px-4 py-2 text-sm font-bold text-primary"
+            aria-label={`Limpar subcategoria ${activeSubcategory}`}
+          >
+            {activeSubcategory}
+            <X size={15} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       {/* Skeletons durante loading */}

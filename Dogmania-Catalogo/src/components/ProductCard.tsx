@@ -45,9 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
             {product.name}
           </Link>
         </h3>
-        <p className="mt-auto text-2xl font-extrabold text-primary">
-          {formatPrice(product.price)}
-        </p>
+        <p className="mt-auto text-2xl font-extrabold text-primary">{formatPrice(product.price)}</p>
 
         <a
           href={buildWhatsappLink(product)}

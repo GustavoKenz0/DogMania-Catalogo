@@ -4,7 +4,6 @@ import com.dogmania.api.dto.ProductDTO;
 import com.dogmania.api.exception.ResourceNotFoundException;
 import com.dogmania.api.model.Product;
 import com.dogmania.api.repository.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
+import org.springframework.lang.NonNull;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,13 +39,11 @@ class ProductServiceTest {
     @InjectMocks
     private ProductService productService;
 
-    private Product product;
-    private UUID productId;
+    @NonNull
+    private final UUID productId = Objects.requireNonNull(UUID.randomUUID());
 
-    @BeforeEach
-    void setUp() {
-        productId = UUID.randomUUID();
-        product = Product.builder()
+    @NonNull
+    private final Product product = Product.builder()
                 .id(productId)
                 .name("Ração Golden Special Cães Adultos 15kg")
                 .description("Ração premium especial completa")
@@ -54,8 +53,14 @@ class ProductServiceTest {
                 .image("https://images.unsplash.com/photo-test")
                 .active(true)
                 .build();
-    }
 
+    // Mockito retorna um sentinela nulo ao registrar o matcher; não é uma entidade real.
+    // A exceção de análise fica restrita a este adaptador, usado somente em stubs/verificações.
+    @NonNull
+    @SuppressWarnings("null")
+    private static Product anyProduct() {
+        return any(Product.class);
+    }
     @Test
     @DisplayName("Deve buscar produto por ID com sucesso quando existir")
     void shouldFindProductByIdWhenExists() {
@@ -72,7 +77,7 @@ class ProductServiceTest {
     @Test
     @DisplayName("Deve lançar ResourceNotFoundException quando produto não existir")
     void shouldThrowExceptionWhenProductNotFound() {
-        UUID nonExistentId = UUID.randomUUID();
+        UUID nonExistentId = Objects.requireNonNull(UUID.randomUUID());
         when(productRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.getProductById(nonExistentId))
@@ -84,7 +89,7 @@ class ProductServiceTest {
     @DisplayName("Deve listar produtos ativos com paginação")
     void shouldListActiveProductsWithPagination() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Product> page = new PageImpl<>(List.of(product), pageable, 1);
+        Page<Product> page = new PageImpl<>(Objects.requireNonNull(List.of(product)), pageable, 1);
         when(productRepository.findByActiveTrue(pageable)).thenReturn(page);
 
         Page<ProductDTO> result = productService.getProducts(null, null, pageable);
@@ -104,12 +109,12 @@ class ProductServiceTest {
                 .active(true)
                 .build();
 
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+        when(productRepository.save(anyProduct())).thenReturn(product);
 
         ProductDTO created = productService.createProduct(dto, "admin@dogmania.com.br");
 
         assertThat(created).isNotNull();
-        verify(productRepository, times(1)).save(any(Product.class));
+        verify(productRepository, times(1)).save(anyProduct());
         verify(auditService, times(1)).logAction(eq("CREATE_PRODUCT"), eq("Product"), any(), eq("admin@dogmania.com.br"), anyString());
     }
 
@@ -138,7 +143,7 @@ class ProductServiceTest {
         when(productRepository.save(product)).thenReturn(product);
         assertThat(productService.setAvailability(productId, false, "admin@example.test").getActive()).isFalse();
         assertThat(productService.setAvailability(productId, true, "admin@example.test").getActive()).isTrue();
-        verify(productRepository, never()).delete(any());
+        verify(productRepository, never()).delete(anyProduct());
     }
 
     @Test
