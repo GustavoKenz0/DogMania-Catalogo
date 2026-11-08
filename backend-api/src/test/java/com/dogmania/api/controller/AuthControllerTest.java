@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import java.util.*;
@@ -28,6 +31,7 @@ class AuthControllerTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired PasswordEncoder encoder;
+    @Autowired JwtTokenProvider tokenProvider;
     @MockitoBean AdminUserRepository users;
     @MockitoBean AuditService audit;
     AdminUser user(boolean active) {
@@ -58,18 +62,43 @@ class AuthControllerTest {
             .content("{\"email\":\"admin@example.test\",\"password\":\"local-test-password\"}"))
             .andExpect(status().isUnauthorized());
     }
+    @Test void databaseFailureDuringLoginReturnsServiceUnavailable() throws Exception {
+        when(users.findByEmailIgnoreCase("admin@example.test"))
+            .thenThrow(new DataAccessResourceFailureException("Internal database error for test"));
+        mvc.perform(post("/api/v1/auth/login").contentType("application/json")
+            .content("{\"email\":\"admin@example.test\",\"password\":\"local-test-password\"}"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.message").value("O login está temporariamente indisponível. Tente novamente em instantes."))
+            .andExpect(jsonPath("$.token").doesNotExist());
+        verifyNoInteractions(audit);
+    }
+    @Test void databaseFailureAfterJwtValidationReturnsServiceUnavailable() throws Exception {
+        AdminUser admin = user(true);
+        var principal = User.withUsername(admin.getEmail()).password("unused").roles("ADMIN").build();
+        String token = tokenProvider.generateToken(UsernamePasswordAuthenticationToken.authenticated(
+                principal, null, principal.getAuthorities()));
+        when(users.findByEmailIgnoreCase(admin.getEmail()))
+            .thenReturn(Optional.of(admin))
+            .thenThrow(new DataAccessResourceFailureException("Internal database error for test"));
+        mvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer " + token))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.message").value("Não foi possível validar a sessão agora. Tente novamente em instantes."))
+            .andExpect(jsonPath("$.token").doesNotExist());
+    }
     @Test void invalidLoginInputIsRejected() throws Exception {
         mvc.perform(post("/api/v1/auth/login").contentType("application/json").content("{\"email\":\"bad\",\"password\":\"\"}"))
             .andExpect(status().isBadRequest());
         verifyNoInteractions(users);
     }
-    @Test void repeatedLoginAttemptsReceive429() throws Exception {
+    @Test void repeatedLoginAttemptsReceive429DespiteSpoofedForwardingHeaders() throws Exception {
         String body="{\"email\":\"unknown@example.test\",\"password\":\"wrong\"}";
         for(int i=0;i<10;i++) {
             mvc.perform(post("/api/v1/auth/login").with(request -> {request.setRemoteAddr("127.0.0.99");return request;})
+                .header("X-Forwarded-For", "198.51.100." + (i + 1))
                 .contentType("application/json").content(body)).andExpect(status().isUnauthorized());
         }
         mvc.perform(post("/api/v1/auth/login").with(request -> {request.setRemoteAddr("127.0.0.99");return request;})
+            .header("X-Forwarded-For", "198.51.100.11")
             .contentType("application/json").content(body)).andExpect(status().isTooManyRequests());
     }
 }

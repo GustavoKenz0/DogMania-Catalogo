@@ -3,15 +3,20 @@ package com.dogmania.api.service;
 import com.dogmania.api.dto.AuthRequestDTO;
 import com.dogmania.api.dto.AuthResponseDTO;
 import com.dogmania.api.dto.CurrentUserDTO;
+import com.dogmania.api.exception.SessionUnavailableException;
 import com.dogmania.api.exception.UnauthorizedException;
 import com.dogmania.api.model.AdminUser;
 import com.dogmania.api.repository.AdminUserRepository;
 import com.dogmania.api.security.JwtTokenProvider;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.Locale;
 
 @Service
@@ -53,6 +58,9 @@ public class AuthService {
                     .email(user.getEmail())
                     .role(user.getRole().name())
                     .build();
+        } catch (AuthenticationServiceException | DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "O login está temporariamente indisponível. Tente novamente em instantes.", e);
         } catch (AuthenticationException e) {
             auditService.logAction("LOGIN_FAILED", "AdminUser", null, request.getEmail(), "Tentativa falha de autenticação");
             throw new UnauthorizedException("Credenciais inválidas");
@@ -60,9 +68,13 @@ public class AuthService {
     }
 
     public CurrentUserDTO currentUser(String email) {
-        AdminUser user = adminUserRepository.findByEmailIgnoreCase(email)
-                .filter(u -> Boolean.TRUE.equals(u.getActive()))
-                .orElseThrow(() -> new UnauthorizedException("Sessão inválida"));
-        return new CurrentUserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name());
+        try {
+            AdminUser user = adminUserRepository.findByEmailIgnoreCase(email)
+                    .filter(u -> Boolean.TRUE.equals(u.getActive()))
+                    .orElseThrow(() -> new UnauthorizedException("Sessão inválida"));
+            return new CurrentUserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole().name());
+        } catch (DataAccessException ex) {
+            throw new SessionUnavailableException(ex);
+        }
     }
 }

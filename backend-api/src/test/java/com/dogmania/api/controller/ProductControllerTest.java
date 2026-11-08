@@ -16,12 +16,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,7 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /** Production security chain and JWT parser; only business/storage dependencies are mocked. */
-@WebMvcTest(controllers={ProductController.class, AdminProductController.class, AgentOfficeController.class, UploadController.class}, properties={
+@WebMvcTest(controllers={ProductController.class, AdminProductController.class, AgentOfficeController.class, UploadController.class, HealthController.class}, properties={
     "dogmania.security.jwt.secret-key=test-only-secret-key-at-least-32-bytes-long",
     "dogmania.security.jwt.expiration-ms=3600000", "dogmania.cors.allowed-origins=http://localhost:8081"})
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class})
@@ -43,6 +48,7 @@ class ProductControllerTest {
     @MockitoBean CustomUserDetailsService users;
     @MockitoBean UploadService uploads;
     @MockitoBean AgentOfficeService office;
+    @MockitoBean DataSource dataSource;
     ProductDTO product() {
         return ProductDTO.builder().id(ID).title("Coleira").description("Coleira ajustável")
             .price(new BigDecimal("49.90")).category("Acessórios")
@@ -72,6 +78,33 @@ class ProductControllerTest {
             .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
             .andExpect(jsonPath("$.participants").isArray());
         mvc.perform(get(path).header("Authorization", auth("SUPER_ADMIN", false))).andExpect(status().isOk());
+    }
+
+    @Test void livenessDoesNotTouchDatabaseAndReadinessUsesItWithoutExposingDetails() throws Exception {
+        String authorization = "Bearer " + token("admin@example.test", SECRET,
+                System.currentTimeMillis() + 60000, "dogmania-api");
+        mvc.perform(get("/health/live").servletPath("/health/live").header("Authorization", authorization))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.status").value("UP"));
+        verifyNoInteractions(dataSource, users);
+
+        Connection connection = mock(Connection.class);
+        when(dataSource.getConnection()).thenReturn(connection)
+            .thenThrow(new SQLException("Internal database error for test"));
+        when(connection.isValid(1)).thenReturn(true);
+        mvc.perform(get("/health/ready").servletPath("/health/ready").header("Authorization", authorization))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.status").value("UP"));
+        verify(connection).close();
+        mvc.perform(get("/health/ready").servletPath("/health/ready").header("Authorization", authorization))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.status").value("DOWN"))
+            .andExpect(jsonPath("$.message").doesNotExist());
+        verifyNoInteractions(users);
+        mvc.perform(get("/health/other")).andExpect(status().isUnauthorized());
     }
 
     @Test void publicCatalogDoesNotCreateSession() throws Exception {
@@ -113,6 +146,20 @@ class ProductControllerTest {
         mvc.perform(get("/api/v1/admin/products").header("Authorization",auth)).andExpect(status().isForbidden());
         verifyNoInteractions(products);
     }
+    @Test void userLookupOutageReturns503ButMissingUserReturns401() throws Exception {
+        String authorization = "Bearer " + token("admin@example.test", SECRET,
+                System.currentTimeMillis() + 60000, "dogmania-api");
+        when(users.loadUserByUsername("admin@example.test"))
+            .thenThrow(new DataAccessResourceFailureException("Internal database error for test"))
+            .thenThrow(new UsernameNotFoundException("User not found"));
+        mvc.perform(delete("/api/v1/products/{id}", ID).header("Authorization", authorization))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.message").value("Não foi possível validar a sessão agora. Tente novamente em instantes."));
+        mvc.perform(delete("/api/v1/products/{id}", ID).header("Authorization", authorization))
+            .andExpect(status().isUnauthorized());
+        verifyNoInteractions(products);
+    }
+
     @Test void disabledAdminCannotReuseToken() throws Exception {
         mvc.perform(delete("/api/v1/products/{id}",ID).header("Authorization",auth("ADMIN",true))).andExpect(status().isUnauthorized());
         verifyNoInteractions(products);

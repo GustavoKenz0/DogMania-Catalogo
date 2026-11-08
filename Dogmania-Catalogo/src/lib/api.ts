@@ -58,7 +58,10 @@ async function request<T>(
     throw new ApiError(
       response.status === 401
         ? "E-mail ou senha inválidos, ou sessão expirada."
-        : error?.message || "Não foi possível concluir a operação. Tente novamente.",
+        : error?.message ||
+            (response.status === 503
+              ? "Serviço temporariamente indisponível. Tente novamente em instantes."
+              : "Não foi possível concluir a operação. Tente novamente."),
       response.status,
     );
   }

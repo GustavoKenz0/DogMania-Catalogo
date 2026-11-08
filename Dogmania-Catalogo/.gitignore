@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# Vercel project metadata and build output
+.vercel/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

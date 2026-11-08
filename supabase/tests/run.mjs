@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 
@@ -30,6 +31,31 @@ try {
   const admins = await db.query("SELECT count(*)::int AS count FROM public.admin_users");
   if (admins.rows[0].count !== 0) throw new Error("Seed must not create a shared administrator");
   console.log("PASS no default administrator");
+
+  const readRestorableData = async (database) => {
+    const products = await database.query("SELECT * FROM public.products ORDER BY id");
+    const audit = await database.query("SELECT * FROM public.audit_logs ORDER BY id");
+    return { products: products.rows, audit: audit.rows };
+  };
+  const expected = await readRestorableData(db);
+  assert(expected.products.length > 0 && expected.audit.length > 0);
+  const snapshot = await db.dumpDataDir("gzip");
+  await db.exec("DELETE FROM public.products");
+  const changed = await readRestorableData(db);
+  assert.equal(changed.products.length, 0);
+  assert(changed.audit.length > expected.audit.length);
+
+  const restored = new PGlite({ loadDataDir: snapshot });
+  try {
+    assert.deepEqual(await readRestorableData(restored), expected);
+    await restored.exec(contract);
+    const restoredAdmins = await restored.query("SELECT count(*)::int AS count FROM public.admin_users");
+    assert.equal(restoredAdmins.rows[0].count, 0);
+    console.log("PASS isolated snapshot restore: products, audit, roles and no default administrator");
+  } finally {
+    await restored.close();
+  }
+
   console.log("Local checks complete. Hosted Supabase, Storage policies, JDBC/TLS and network were not tested.");
 } catch (error) {
   console.error(`FAIL database checks: ${error.message}`);

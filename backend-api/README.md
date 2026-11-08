@@ -114,6 +114,63 @@ Bootstrap é opcional. Após o primeiro login, desative-o e remova sua senha do 
 
 O Hibernate somente valida o esquema (`ddl-auto=validate`). Ele não executa migrações nem altera as tabelas automaticamente.
 
+Para gerar o JAR manualmente, use JDK 21 e execute `mvn clean package` na
+pasta `backend-api` de uma cópia do projeto fora da IDE. O Maven recompila
+todas as fontes e gera o pacote em `target/`.
+
+## Homologação da API no Render
+
+1. Antes de criar o serviço, aplique e valide as migrações no PostgreSQL
+   de homologação. Prepare as variáveis abaixo e a conta administrativa
+   exclusiva desse ambiente. Se a base ainda não tiver administrador, use o
+   [bootstrap](#primeiro-administrador) temporariamente em ambiente controlado,
+   antes de liberar o painel. Desative-o e retire a senha após o primeiro login.
+2. No formulário **New Web Service**, selecione o runtime **Docker**.
+   Use `backend-api` como Root Directory, `./Dockerfile` como Dockerfile Path
+   e `.` como Docker Build Context. A imagem usa Java 21, executa como
+   usuário sem privilégios e copia apenas o JAR construído a partir de
+   `pom.xml` e `src/main`.
+3. Ainda no formulário, preencha as variáveis e defina `/health/ready` como
+   Health Check Path. A API usa a porta `PORT` fornecida pela plataforma
+   quando `SERVER_PORT` não está definido. A porta local padrão é 8080.
+   O check testa a conexão com o PostgreSQL e retorna `{"status":"UP"}` (200)
+   ou `{"status":"DOWN"}` (503), sem cache. `/health/live` confirma o processo
+   sem consultar o banco. Uma indisponibilidade prolongada do banco pode
+   fazer o Render retirar a instância do tráfego e reiniciá-la.
+4. Mantenha o deploy automático desligado durante a homologação. Ao
+   confirmar **Create Web Service**, o Render inicia o primeiro deploy
+   mesmo com essa opção desligada. Depois de confirmar a URL da API, defina
+   `VITE_API_URL` no frontend com HTTPS e o sufixo `/api/v1`.
+
+| Variáveis | Configuração no Render |
+| --- | --- |
+| `SUPABASE_DB_URL`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD` | Conexão JDBC com `sslmode=verify-full`, role de runtime e senha exclusiva. Quando o driver precisar de uma CA, adicione o certificado em **Secret Files** e aponte `sslrootcert` para o caminho de runtime `/etc/secrets/<arquivo>`. |
+| `JWT_SECRET_KEY`, `JWT_EXPIRATION_MS` | Chave independente de pelo menos 32 bytes aleatórios e validade conforme a política do ambiente. |
+| `CORS_ORIGINS` | Origem HTTPS exata do frontend, sem caminho nem barra final. Use vírgula apenas para múltiplas origens explicitamente autorizadas. |
+| `DOGMANIA_BOOTSTRAP_ADMIN_ENABLED`, `API_DOCS_ENABLED`, `STORAGE_ENABLED` | Mantenha `false` na homologação inicial. |
+| `DOGMANIA_TRUSTED_PROXY_REGEX` | Deixe ausente até confirmar a cadeia de entrada e os IPs do proxy confiável. |
+
+### Proxy e limite de login
+
+O Tomcat desconsidera os cabeçalhos encaminhados por padrão. Quando a regex
+configurada reconhece o endereço da conexão imediata, o Tomcat pode aceitar
+`X-Forwarded-For` e `X-Forwarded-Proto` desse proxy. Configure uma lista
+restrita de endereços do proxy de ingresso confirmado e verifique que ele
+higieniza os cabeçalhos recebidos. Uma regex ampla ou o uso dos IPs de
+**saída** publicados pelo Render não identifica o proxy de entrada.
+
+Enquanto os proxies estiverem sem confirmação, o limite de login se baseia
+no endereço da conexão que chegou à API, o que pode agrupar clientes atrás
+do Render. Antes de abrir a produção, valide o comportamento de dois
+clientes distintos, configure limite compartilhado e limite de corpo no
+gateway, e confirme que a origem não pode ser acessada contornando esses
+controles. O limite por instância continua como segunda proteção.
+
+Confira a documentação de deploy, monitoramento e proxy. [Docker no Render](https://render.com/docs/docker),
+[serviços web](https://render.com/docs/web-services),
+[checagens de saúde](https://render.com/docs/health-checks) e
+[Remote IP Valve do Tomcat](https://tomcat.apache.org/tomcat-10.1-doc/config/valve.html#Remote_IP_Valve).
+
 ## Subcategorias do catálogo
 
 A migration `20261020010000_product_subcategories.sql` deve estar aplicada antes de
@@ -133,6 +190,8 @@ O bootstrap é opcional, sem conta ou senha de demonstração. Defina `DOGMANIA_
 
 | Método e rota | Acesso | Resultado |
 | --- | --- | --- |
+| GET `/health/live` | Público | Estado do processo, sem consultar o banco |
+| GET `/health/ready` | Público | Estado da conexão com o banco, 200 ou 503 |
 | POST `/api/v1/auth/login` | Público, limitado por IP | `{token,tokenType,expiresIn,userId,name,email,role}` |
 | GET `/api/v1/auth/me` | ADMIN / SUPER_ADMIN | `{userId,name,email,role}` |
 | GET `/api/v1/products` | Público | Página de produtos ativos |
@@ -156,7 +215,10 @@ Revise `../supabase/setup_storage.sql` antes de criar o bucket público `product
 ## Segurança e operação
 
 - JWT Bearer de uma hora por padrão, com issuer obrigatório e assinatura validada. O usuário e seu estado ativo são consultados no banco em cada requisição autenticada. Não há refresh token; após expiração, faça login novamente. Logout no cliente remove o token; revogação imediata exige desativar o administrador ou uma futura lista de revogação.
-- Senhas BCrypt, respostas JSON 401/403, validação de DTOs e allowlist CORS. O browser não envia cookies de autenticação.
+- Senhas BCrypt, validação de DTOs e allowlist CORS. Credenciais inválidas ou
+  sessão recusada retornam 401. Permissão insuficiente retorna 403.
+  Falhas temporárias ao consultar a autenticação
+  retornam 503 sem detalhes internos. O navegador não envia cookies de autenticação.
 - Login limitado a 10 tentativas por IP em cinco minutos por instância. Em produção, use também controle compartilhado no gateway/reverse proxy; não confie em `X-Forwarded-For` arbitrário. HTTPS, monitoramento e limites de corpo/requisições devem ser configurados no proxy.
 - O trigger PostgreSQL gera auditoria durável das alterações de produtos dentro da transação. A role de runtime não grava diretamente na tabela de auditoria. Logs da aplicação complementam o usuário autenticado e eventos de login; envie-os a um destino protegido. Os registros do banco identificam a conexão, não a pessoa.
 - Swagger desabilitado por padrão e administrativo quando habilitado. Nenhuma configuração elimina todos os riscos; mantenha dependências atualizadas e faça revisão operacional e testes com o banco de homologação antes da publicação.

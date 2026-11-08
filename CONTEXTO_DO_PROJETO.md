@@ -24,12 +24,12 @@ Existe um único histórico oficial: a seção 7 deste documento.
 | Onde está o código real neste computador? | Raiz em `Desktop/Dogmania-Catalogo`; frontend na subpasta homônima e API em `backend-api/`. Conferir o caminho em outra máquina. |
 | Como a aplicação se comunica? | Navegador → API Java → PostgreSQL no Supabase; Storage é opcional. |
 | Como iniciar na instalação já configurada? | `Iniciar Dogmania.cmd` na raiz; frontend 8081 e API 8080. Ver seção 5. |
-| Última operação real confirmada? | 06/11/2026: Supabase ativo, API e frontend reiniciados, catálogo com 6 ativos e conta administrativa ativa (038). O último login real confirmado com senha foi em 21/10/2026 (032). |
-| O que foi conferido em 08/11/2026? | Circulação dos 22 pets nos três cenários de atividade, variedade de destinos e colisão nos vasos (044), além do ciclo de passada nos dois sentidos no Chromium (045). A recuperação do Supabase e dos serviços locais está na entrada 038. |
-| Último commit local encontrado? | `921e8a5` — Atualiza catálogo, navegação e configuração local da Dogmania. A consulta local não comprova o estado atual do remoto. |
-| O que ainda não foi publicado? | Relatos 031/032, organização da memória, Sala dos Agentes, orquestração técnica e correção do diagnóstico de login. Apresentar a seleção exata antes de commit/push. |
+| Última operação real confirmada? | 08/11/2026: consulta somente leitura ao Supabase ativo encontrou seis itens de teste e zero outros ativos (048). O último login real confirmado com senha foi em 21/10/2026 (032). |
+| O que foi conferido em 08/11/2026? | Build SSR para Vercel, segurança e empacotamento Java, sessão durante 503 e ensaios locais de banco (048). Os testes da Sala dos Agentes estão nas entradas 044 e 045. |
+| Último commit local e remoto confirmado? | 11d6730 — feat: adiciona Sala dos Agentes e fluxo de revisão técnica, confirmado no GitHub em 08/11/2026 (047). |
+| O que ainda não foi publicado? | Preparação Vercel/Render e operação (048), incluindo registro pós-publicação (047) e correção do diagnóstico de login. O kit local .agents/ está fora da seleção. |
 | Onde ficam os acessos? | Somente em `.private/ACESSOS_DO_SISTEMA.local.txt` e envs locais protegidos; valores não fazem parte desta memória pública. |
-| Qual é a entrega mais recente? | Orquestração técnica registrada na entrada 046. A revisão mais recente da aplicação é a passada lateral em quatro fases na Sala dos Agentes (045). |
+| Qual é a entrega mais recente? | Preparação para homologação na Vercel e no Render (048). A Sala dos Agentes e a orquestração técnica foram publicadas na entrada 047. |
 
 ### 0.2. Mapa das salas
 
@@ -783,16 +783,17 @@ relatórios de alterações serão acrescentados somente neste arquivo.
 | Interface | Entrada 028: build/tipos/lint e conferência de fade/bounce desktop/toque; entrada 032: navegação/login reais em Chrome isolado | Cobertura funcional completa, novos tamanhos e regressões após mudança |
 | Banco/TLS | Instalação e role confirmadas por JDBC em 19/10; operação real e inspeção Supabase em 21/10 | Compatibilidade e TLS em outro ambiente ou após mudança de schema/credencial |
 | Testes | Suítes e seus resultados são históricos nas entradas correspondentes | Não foram executados testes de aplicação nesta entrega de documentação |
-| Publicação | 921e8a5 foi o último commit local observado; 031/032 permaneceram locais | Esta memória e seus apontadores ainda exigem aprovação própria para publicação |
+| Publicação | 08/11/2026: commit 11d6730 com 23 arquivos confirmado em refs/heads/main do GitHub (047) | Conferir a ref novamente em outra sessão e obter aprovação para a próxima seleção |
 
 ### 6.2. Pendências registradas e limites de escopo
 
-- **Continuidade desta entrega:** arquivo canônico salvo localmente; falta aprovação
-  do conteúdo atual antes de commit/push. Não existe autorização automática para
-  o novo escopo a partir da mensagem proposta na entrega anterior.
-- **Produção:** hospedagem, HTTPS, gestão de segredos, backups com restauração
-  comprovada, observabilidade e controles de gateway não foram homologados por
-  esta memória. Não tratar o endereço localhost como implantação pública.
+- **Continuidade desta entrega:** o comprovante local da entrada 047 integra
+  a seleção revisada da entrada 048, que aguarda aprovação.
+- **Produção:** o código está preparado para homologação na Vercel e no Render.
+  Faltam a lista real de produtos, ambientes e credenciais próprias, proteção
+  de login no gateway hospedado, ensaio de restauração do Supabase hospedado e
+  confirmação de alertas e do WhatsApp com a equipe da loja.
+  Siga o [roteiro de lançamento](README.md#homologar-a-loja-na-vercel-e-no-render).
 - **Storage:** configuração remota e políticas precisam de revisão antes de ativar
   upload real. Upload desligado com URL de imagem informada é estado previsto.
 - **Qualidade:** ampliar homologação integrada Java/PostgreSQL e interface,
@@ -2461,3 +2462,59 @@ Não registrar segredos. Preservar o histórico e atualizar as seções de estad
 - A seleção pendente da Sala dos Agentes e da documentação de trabalho
   reúne 23 arquivos. A proposta é feat: adiciona Sala dos Agentes e fluxo
   de revisão técnica, para origin/main. Commit e push aguardam aprovação.
+
+### 2026-11-08 — 047 — Publicação da Sala dos Agentes e do fluxo de revisão
+
+- O usuário aprovou o commit e o push dos 23 arquivos revisados na entrada 046.
+  A seleção inclui a Sala dos Agentes com os avatares atualizados, o suporte
+  na API e a documentação de orquestração e retomada.
+- Engenharia conferiu branch, remoto, índice e escopo. QA e segurança
+  compararam os hashes da seleção, verificaram os caminhos ignorados e o
+  diff. Continuidade revisou a forma de registrar a evidência de publicação.
+  Os 23 arquivos coincidiram com a cópia aprovada e com os blobs do commit.
+- O commit 11d673060e1c3bd37e8a78688cf6ec933ee212df foi publicado em
+  origin/main com a mensagem feat: adiciona Sala dos Agentes e fluxo de
+  revisão técnica. Antes do envio, a ponta remota era 921e8a5. Depois
+  do envio, git ls-remote confirmou o novo SHA em refs/heads/main.
+- README.md, AuthService.java, AuthControllerTest.java e .agents/
+  ficaram fora da seleção publicada. Esta entrada foi registrada
+  localmente após a confirmação do GitHub.
+
+### 2026-11-08 — 048 — Preparação de homologação na Vercel e no Render
+
+- O usuário pediu as quatro ações de pré-lançamento e escolheu Render
+  para a API Java. A vitrine e o painel usam Vercel. PostgreSQL fica
+  no Supabase, com projeto de homologação separado no roteiro.
+- Engenharia preparou a saída SSR do Nitro para Vercel. O build valida
+  VITE_API_URL com HTTPS e caminho /api/v1. O painel conserva o token
+  quando uma falha transitória impede a verificação da sessão e oferece
+  nova tentativa. Validação independente em Chromium cobriu o retorno
+  de 503, a recuperação e o encerramento da sessão em 401.
+- QA e segurança prepararam Docker Java 21, suporte à porta PORT, probes
+  /health/live e /health/ready e o contrato 503 para indisponibilidade
+  do login ou da sessão. Cabeçalhos encaminhados são ignorados por padrão.
+  O Tomcat só os aceita quando o endereço imediato coincide com o proxy
+  configurado. O limite no gateway e o ingresso do Render precisam
+  de validação própria. Engenharia revisou os probes e o fluxo de deploy.
+- Continuidade validou o roteiro funcional e a restauração em PGlite.
+  Em PostgreSQL 17.11 descartável, as três migrations, grants, RLS,
+  login, cadastro, edição, rejeição de preço inválido, disponibilidade,
+  exclusão e auditoria passaram. Com o banco parado, live retornou 200
+  e ready e auth/me retornaram 503. A sessão recuperou com o mesmo token.
+  pg_dump e pg_restore recuperaram os dados, permissões e login em outro
+  banco local. Restauração, início da API e validação levaram 15,9 s.
+- Verificações locais incluem build Vercel com saída SSR v3 e rejeição de
+  URL inválida, build padrão, TypeScript, ESLint, 40 testes Java e
+  mvn clean package. Um JAR incremental do target usado pela IDE
+  misturou bytecode de versões diferentes. A compilação limpa em cópia
+  isolada gerou bytecode Java 21 e executou em JVM 21. O build Docker
+  e o ensaio de recuperação no Supabase hospedado ficaram pendentes.
+- O Supabase da loja foi consultado em leitura. Os seis itens ativos são
+  dados de teste, cinco exemplos e um rascunho. A troca aguarda nomes,
+  preços, categorias, disponibilidade e fotos da loja. Nenhum produto
+  ou acesso existente foi alterado nesta etapa.
+- As mudanças estão no frontend, API, testes e guias README do projeto,
+  além deste arquivo. A seleção de 24 arquivos tem como proposta
+  feat: prepara homologação na Vercel e no Render, para origin/main.
+  Commit e push aguardam aprovação. Implantação, rotação de credenciais,
+  alertas hospedados e recebimento no WhatsApp dependem de homologação.

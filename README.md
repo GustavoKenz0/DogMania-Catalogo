@@ -4,6 +4,22 @@ Contexto para continuidade e relatório único de alterações:
 [CONTEXTO_DO_PROJETO.md](CONTEXTO_DO_PROJETO.md). Leia esse arquivo antes de modificar
 o projeto e atualize-o a cada entrega, conforme `AGENTS.md`.
 
+## Retomar o projeto em outro chat ou com outra IA
+
+O [palácio de memória do projeto](CONTEXTO_DO_PROJETO.md#entrada) é o arquivo
+único de continuidade: decisões, mapa do código, arquitetura, fluxos, banco,
+configuração, operação, incidentes, evidências com data, pendências e histórico.
+Ele fica salvo junto do código e pode ser lido por qualquer ferramenta de Markdown.
+
+Abra [AGENTS.md](AGENTS.md) e entregue à próxima IA o
+[prompt de retomada](CONTEXTO_DO_PROJETO.md#prompt-retomada). A IA deve conferir as
+fontes e o estado Git antes de prosseguir; uma verificação antiga não garante
+que os serviços estejam rodando agora. Não é preciso recuperar este chat.
+
+Senhas permanecem no documento privado local e fora da memória pública. Esta
+documentação não é dump do banco nem backup automático: a cópia no GitHub depende
+de commit/push aprovados, e recuperação do banco/acessos é separada.
+
 Repositório de destino: [GustavoKenz0/DogMania-Catalogo](https://github.com/GustavoKenz0/DogMania-Catalogo).
 Commits e pushes exigem aprovação explícita do usuário para cada entrega. Exemplos
 de configuração sem credenciais são versionados; arquivos locais com segredos,
@@ -124,6 +140,32 @@ reaproveita exemplos idênticos; se um exemplo já tiver sido editado, interromp
 preservá-lo. O CRUD usa apenas um registro temporário próprio, removido ao concluir;
 as provas SQL de constraints são revertidas. Os seis exemplos ficam disponíveis no
 painel para uso manual. Nenhum administrador, migration ou senha é criado/alterado.
+
+## Homologar a loja na Vercel e no Render
+
+1. Prepare um [projeto Supabase separado para homologação](supabase/README.md#ambientes-catálogo-real-e-recuperação).
+   Crie o primeiro acesso administrativo com credenciais próprias desse ambiente.
+2. No Render, crie um Web Service Docker para a pasta backend-api e configure
+   a conexão JDBC, o segredo JWT, a origem CORS do site e o caminho de prontidão.
+   Siga o [guia da API](backend-api/README.md) e confirme que a URL HTTPS responde.
+3. Importe o repositório na Vercel e escolha Dogmania-Catalogo como Root Directory.
+   O primeiro deploy usa o ambiente Production do projeto Vercel. Para testar,
+   use um projeto separado de homologação com VITE_API_URL apontando para a URL
+   HTTPS da API de teste, terminada em /api/v1. Nos deploys de Preview seguintes,
+   configure a variável também no ambiente Preview. Proteja o acesso e inclua
+   no CORS a origem exata usada no teste. Consulte o
+   [guia do frontend](Dogmania-Catalogo/README.md).
+4. No Render, ative as notificações de falha por e-mail e configure
+   /health/ready como Health Check Path. Use também uma checagem externa do
+   catálogo no domínio final. Execute o [roteiro de homologação](tests/README.md)
+   com a equipe da loja, incluindo restauração e recebimento de alerta.
+   [Notificações do Render](https://render.com/docs/notifications)
+5. Configure credenciais, domínio, API e banco próprios de produção. Gere um
+   novo build com a URL da API de produção, a partir do commit aprovado.
+   Divulgue o domínio após a conferência do catálogo real e do WhatsApp.
+
+[Frontend TanStack Start na Vercel](https://vercel.com/kb/guide/deploy-a-tanstack-start-app-to-vercel)
+· [Web Service no Render](https://render.com/docs/web-services)
 
 ## Validação e publicação
 

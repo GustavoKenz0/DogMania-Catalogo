@@ -1,11 +1,16 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:${PORT:8080}}
+  forward-headers-strategy: native
   error:
     include-message: never
     include-stacktrace: never
     include-binding-errors: never
   tomcat:
     max-http-form-post-size: 1MB
+    remoteip:
+      internal-proxies: '${DOGMANIA_TRUSTED_PROXY_REGEX:(?!)}'
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
 
 spring:
   config:
@@ -22,6 +27,8 @@ spring:
     username: ${SUPABASE_DB_USER:dogmania_api}
     password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 3000
 
   jpa:
     hibernate:

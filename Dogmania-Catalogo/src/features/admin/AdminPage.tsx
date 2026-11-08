@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   Store,
 } from "lucide-react";
-import { api, isAdminRole, type AdminUser } from "@/lib/api";
+import { api, ApiError, isAdminRole, type AdminUser } from "@/lib/api";
 import { useProducts } from "@/hooks/useProducts";
 import { type Product } from "@/features/products/model";
 import { ProductEditor } from "./ProductEditor";
@@ -43,6 +43,8 @@ export function AdminPage({ showOffice }: { showOffice: boolean }) {
   const client = useQueryClient();
   const [session, setSession] = useState<AdminUser | null>(null);
   const [checking, setChecking] = useState(true);
+  const [checkError, setCheckError] = useState("");
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!session) return;
     const timer = window.setInterval(() => {
@@ -54,6 +56,7 @@ export function AdminPage({ showOffice }: { showOffice: boolean }) {
     let mounted = true;
     const clear = () => {
       setSession(null);
+      setCheckError("");
       client.removeQueries({ queryKey: ["products", "admin"] });
       client.removeQueries({ queryKey: ["admin", "agent-office"] });
     };
@@ -64,10 +67,15 @@ export function AdminPage({ showOffice }: { showOffice: boolean }) {
       api
         .me()
         .then((user) => {
-          if (mounted && isAdminRole(user.role)) setSession(user);
+          if (!mounted) return;
+          if (isAdminRole(user.role)) setSession(user);
           else api.removeToken();
         })
-        .catch(() => api.removeToken())
+        .catch((error: unknown) => {
+          if (!mounted || !api.getToken()) return;
+          if (error instanceof ApiError && error.status === 403) api.removeToken();
+          else setCheckError(errorMessage(error));
+        })
         .finally(() => {
           if (mounted) setChecking(false);
         });
@@ -76,13 +84,35 @@ export function AdminPage({ showOffice }: { showOffice: boolean }) {
       mounted = false;
       window.removeEventListener("dogmania-auth-changed", clear);
     };
-  }, [client]);
+  }, [attempt, client]);
   if (checking)
     return (
       <main className="grid min-h-screen place-items-center bg-muted/30">
         <p role="status" className="flex items-center gap-3 text-muted-foreground">
           <LoaderCircle className="h-5 w-5 animate-spin" /> Verificando seu acesso…
         </p>
+      </main>
+    );
+  if (checkError)
+    return (
+      <main className="grid min-h-screen place-items-center bg-muted/30 p-5">
+        <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h1 className="font-display text-xl font-bold">Não foi possível verificar seu acesso</h1>
+          <p role="alert" className="mt-3 text-sm text-muted-foreground">
+            {checkError}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setChecking(true);
+              setCheckError("");
+              setAttempt((current) => current + 1);
+            }}
+            className="mt-5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+          >
+            Tentar novamente
+          </button>
+        </section>
       </main>
     );
   return session ? (

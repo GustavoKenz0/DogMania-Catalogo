@@ -1,18 +1,40 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro (build-only using cloudflare as a default target),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
+// The Lovable wrapper already adds TanStack Start, React, Tailwind and Nitro.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { loadEnv, type ConfigEnv } from "vite";
 
-export default defineConfig({
-  vite: {
-    server: { host: "127.0.0.1", port: 8081, strictPort: true },
-  },
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
-});
+function validateVercelApiUrl(mode: string) {
+  const value = loadEnv(mode, process.cwd(), "VITE_API_URL").VITE_API_URL;
+  const url = value && URL.canParse(value) ? new URL(value) : null;
+  if (
+    !url ||
+    /[\s?#]/.test(value) ||
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    !url.hostname.includes(".") ||
+    /(?:^|\.)localhost\.?$|\.local\.?$|^\d+(?:\.\d+){3}$/.test(url.hostname) ||
+    !/^\/api\/v1\/?$/.test(url.pathname)
+  ) {
+    throw new Error(
+      "Configure VITE_API_URL com a URL HTTPS pública da API Java, terminada em /api/v1.",
+    );
+  }
+}
+
+export default function configure(env: ConfigEnv) {
+  const vercelBuild =
+    env.command === "build" &&
+    (env.mode === "vercel" || process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel");
+  if (vercelBuild) validateVercelApiUrl(env.mode);
+
+  return defineConfig({
+    ...(vercelBuild && { nitro: { preset: "vercel" } }),
+    vite: {
+      server: { host: "127.0.0.1", port: 8081, strictPort: true },
+    },
+    tanstackStart: {
+      // Keep the custom TanStack Start SSR entry.
+      server: { entry: "server" },
+    },
+  })(env);
+}

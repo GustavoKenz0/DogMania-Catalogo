@@ -50,7 +50,7 @@ ALTER ROLE dogmania_api LOGIN;
 ```
 
 No Windows, a alternativa sem instalar `psql` é o assistente
-`backend-api/setup-supabase.ps1`, após aplicar as duas migrations. Informe os
+`backend-api/setup-supabase.ps1`, após aplicar as migrations. Informe os
 parâmetros públicos `-PoolerHost` e `-ProjectRef`; as senhas são solicitadas
 ocultas no próprio terminal. Ele habilita apenas a role existente, com senha
 SCRAM-SHA-256, confere sua conexão e encaminha ao configurador local do backend.
@@ -136,6 +136,50 @@ políticas já existentes em `storage.objects`: uma política antiga e permissiv
 pode conceder escrita a clientes mesmo sem novas policies neste script. Teste
 essa configuração no projeto de homologação antes de publicá-la.
 
+## Ambientes, catálogo real e recuperação
+
+Use um projeto Supabase separado para homologação. A prévia da Vercel chama
+somente a API Java de homologação, que usa a role e os segredos desse ambiente.
+Aplique as três migrations no projeto correto. O seed opcional é para
+desenvolvimento. Em produção, cadastre pelo painel os itens aprovados pela loja
+com preços, fotos, categoria e disponibilidade reais. Antes de divulgar o site,
+desative pelo painel os exemplos confirmados e confira a listagem pública.
+
+### Credenciais de produção
+
+Gere segredos exclusivos para o JDBC e o JWT e guarde-os no ambiente da API.
+Mantenha a conexão JDBC com verify-full e a CA oficial do projeto. Para trocar
+um acesso administrativo de teste, valide primeiro uma conta própria do
+responsável com senha nova. O bootstrap temporário cria uma conta com e-mail
+novo e deve ser desligado após a confirmação. Para manter o mesmo e-mail,
+faça a troca por procedimento administrativo controlado com hash BCrypt.
+Desative contas de teste somente depois de confirmar o acesso substituto.
+Use [a configuração da API](../backend-api/README.md) para os passos de bootstrap.
+
+### Backup e ensaio de restauração
+
+1. Defina quem recebe alertas, a frequência do backup e a retenção. Consulte
+   o painel do projeto e confirme o que o plano oferece. Quando precisar
+   de exportação lógica, siga o guia oficial da CLI e armazene o resultado
+   em local privado, criptografado e fora do Git. Trate o dump como dado
+   sensível, pois ele pode conter hashes de senhas e registros de auditoria.
+2. Restaure em um projeto de teste separado ou em um PostgreSQL compatível
+   isolado. Confirme os identificadores de origem e destino antes de
+   executar a restauração. Use segredos novos no destino. Se houver fotos
+   em Storage, faça backup e teste a recuperação dos arquivos separadamente.
+3. Confira a contagem de produtos ativos e inativos, o histórico de auditoria,
+   as migrations e as permissões da role Java no destino. Conecte somente
+   a API de teste e confira leitura pública, login de uma conta própria desse
+   ambiente e cadastro, edição, desativação e reativação de um item.
+4. Registre data, tempo de restauração e resultado no palácio de memória,
+   sem anexar dumps nem credenciais. O teste em PGlite abaixo serve para
+   validar o fluxo local com dados descartáveis. O backup do serviço hospedado
+   precisa de um ensaio próprio.
+
+Guias oficiais de [backup do banco](https://supabase.com/docs/guides/platform/backups),
+[restauração pelo painel](https://supabase.com/docs/guides/platform/migrating-within-supabase/dashboard-restore)
+e [exportação e restauração pela CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+
 ## Validação antes da publicação
 
 Execute `tests/access_contract.sql` como dono de migração em banco de teste após
@@ -156,7 +200,7 @@ bun run test
 ```
 
 O runner usa [PGlite](https://pglite.dev/docs/about), uma execução PostgreSQL em
-WebAssembly, inteiramente em memória. Foram executadas as duas migrations, o seed
+WebAssembly, inteiramente em memória. Foram executadas as três migrations, o seed
 e o contrato de acesso com sucesso. Somente as extensões opcionais antigas
 `uuid-ossp`/`pgcrypto` são omitidas nesse runner, pois `gen_random_uuid` já existe
 no núcleo; funções de Supabase Auth são simuladas apenas para carregar a migration
