@@ -1,3 +1,4 @@
+import type { OfficeSnapshot } from "@/features/admin/agent-office/model";
 import type { Product } from "@/features/products/model";
 
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1").replace(
@@ -27,7 +28,8 @@ async function request<T>(
   authenticated = false,
 ): Promise<T> {
   const headers = new Headers(options.headers);
-  if (options.body && !(options.body instanceof FormData)) headers.set("Content-Type", "application/json");
+  if (options.body && !(options.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
   if (authenticated) {
     const token = api.getToken();
     if (!token) {
@@ -107,6 +109,7 @@ export const api = {
     return data;
   },
   me: () => request<AdminUser>("/auth/me", {}, true),
+  fetchAgentOffice: () => request<OfficeSnapshot>("/admin/agent-office", {}, true),
   async fetchProducts(admin = false): Promise<Product[]> {
     const products: Product[] = [];
     let page = 0;

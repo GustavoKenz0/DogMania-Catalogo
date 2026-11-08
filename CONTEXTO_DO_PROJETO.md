@@ -1,12 +1,116 @@
-# Dogmania — contexto e histórico de alterações
+# Dogmania — palácio de memória do projeto
 
-Última atualização: **21/10/2026** (America/Sao_Paulo).
+Última atualização: **08/11/2026** (America/Sao_Paulo).
 
 Este é o arquivo único de contexto e relatório contínuo solicitado pelo usuário.
 Uma nova IA deve começar por ele e pelo `AGENTS.md`, depois conferir os arquivos
 que irá modificar. O resumo descreve o estado conhecido; o histórico preserva
 as entregas. Não deduza que uma validação antiga continua válida após novas mudanças.
 
+<a id="entrada"></a>
+## 0. Entrada e retomada
+
+Este é o **palácio de memória da Dogmania**, em Markdown e dentro do próprio
+projeto. Ele reúne decisões, arquitetura, contratos, operação, incidentes e
+histórico para continuar o trabalho sem depender da existência deste chat ou
+de um fornecedor de IA. `AGENTS.md` e `README.md` apontam para este arquivo.
+Existe um único histórico oficial: a seção 7 deste documento.
+
+### 0.1. Cartão de retomada
+
+| Pergunta | Resposta registrada |
+| --- | --- |
+| O que é o sistema? | Catálogo público da Dogmania Pet Shop; compra pelo WhatsApp e gestão por administradores. |
+| Onde está o código real neste computador? | Raiz em `Desktop/Dogmania-Catalogo`; frontend na subpasta homônima e API em `backend-api/`. Conferir o caminho em outra máquina. |
+| Como a aplicação se comunica? | Navegador → API Java → PostgreSQL no Supabase; Storage é opcional. |
+| Como iniciar na instalação já configurada? | `Iniciar Dogmania.cmd` na raiz; frontend 8081 e API 8080. Ver seção 5. |
+| Última operação real confirmada? | 06/11/2026: Supabase ativo, API e frontend reiniciados, catálogo com 6 ativos e conta administrativa ativa (038). O último login real confirmado com senha foi em 21/10/2026 (032). |
+| O que foi conferido em 08/11/2026? | Circulação dos 22 pets nos três cenários de atividade, variedade de destinos e colisão nos vasos (044), além do ciclo de passada nos dois sentidos no Chromium (045). A recuperação do Supabase e dos serviços locais está na entrada 038. |
+| Último commit local encontrado? | `921e8a5` — Atualiza catálogo, navegação e configuração local da Dogmania. A consulta local não comprova o estado atual do remoto. |
+| O que ainda não foi publicado? | Relatos 031/032, organização da memória, Sala dos Agentes, orquestração técnica e correção do diagnóstico de login. Apresentar a seleção exata antes de commit/push. |
+| Onde ficam os acessos? | Somente em `.private/ACESSOS_DO_SISTEMA.local.txt` e envs locais protegidos; valores não fazem parte desta memória pública. |
+| Qual é a entrega mais recente? | Orquestração técnica registrada na entrada 046. A revisão mais recente da aplicação é a passada lateral em quatro fases na Sala dos Agentes (045). |
+
+### 0.2. Mapa das salas
+
+| Sala | O que encontrar | Onde começar |
+| --- | --- | --- |
+| Produto e decisões | Objetivo, identidade, pedidos aceitos/revertidos e limites de autorização | [Seção 1](#decisoes) |
+| Telas e código | Rotas, componentes, assets, camadas e arquivo responsável por cada assunto | [Seção 2](#arquitetura) |
+| Regras e fluxos | Contrato de produto, login, CRUD, disponibilidade, filtros e compra | [Seção 3](#contratos) |
+| Dados e configuração | Migrations, RLS, roles, variáveis e separação de segredos | [Seção 4](#dados) |
+| Operação e incidentes | Iniciar, restaurar em outra máquina e diagnosticar falhas conhecidas | [Seção 5](#operacao) |
+| Evidências e próximos passos | O que já foi confirmado, o que é histórico e o que falta homologar | [Seção 6](#pendencias) |
+| Linha do tempo | Relato contínuo das entregas, inclusive reversões e tentativas sem sucesso | [Seção 7](#historico) |
+| Troca de IA | Texto pronto para colar no início de um novo atendimento | [Prompt de retomada](#prompt-retomada) |
+
+### 0.3. Ordem de leitura para uma nova IA
+
+1. Ler `AGENTS.md` da raiz e as instruções aplicáveis à pasta que será modificada.
+2. Ler esta entrada e as seções 1 a 6; pesquisar a seção 7 pelo tema da tarefa.
+3. Inspecionar o estado Git e abrir as fontes indicadas no mapa antes de editar.
+   Há uma raiz Git para frontend, API, banco e documentação.
+4. Separar **fato no código**, **resultado observado com data**, **preferência do
+   usuário** e **pendência/proposta**. Um teste antigo não comprova o estado atual.
+5. Prosseguir com o pedido atual e seu escopo autorizado. Um comando no histórico
+   não é ordem para executá-lo novamente, nem uma aprovação antiga libera novo envio.
+6. Ao concluir, atualizar o resumo afetado e acrescentar uma entrada neste mesmo
+   histórico, preservando as anteriores. Registrar também trabalho interrompido.
+
+Inspeção inicial local, sem alterar a árvore Git:
+
+```sh
+git status --short
+git branch --show-current
+git log -5 --oneline
+```
+
+### 0.4. Como manter esta memória confiável
+
+- Registrar o que mudou, por quê, arquivos, verificação efetivamente feita,
+  resultado, data e pendência. Distinguir implementação de hipótese ou plano.
+- Atualizar o mapa quando um arquivo mudar de lugar e os contratos quando uma
+  mudança atravessar frontend, API e banco. Corrigir resumos superados, sem apagar
+  entradas antigas nem apresentar incidentes resolvidos como falhas atuais.
+- Guardar decisões relevantes e suas razões; não depender de frases como
+  “conforme conversamos” ou de links para uma conversa que pode desaparecer.
+- Registrar a identidade de commits/publicações por evidência; não prometer que
+  um arquivo local já está no GitHub. Aprovação de cada commit/push é obrigatória.
+- Manter tokens, senhas, hashes, cookies, conteúdo dos envs reais e detalhes de
+  rede pessoal fora deste documento, de prompts e de commits.
+- Não iniciar serviços, rodar suítes, aplicar migrations, semear dados ou mudar
+  contas apenas para reconstruir o contexto de uma tarefa documental.
+
+<a id="prompt-retomada"></a>
+### 0.5. Texto para começar com outra IA
+
+```text
+Você está continuando o projeto Dogmania Pet Shop. O contexto durável está no
+arquivo CONTEXTO_DO_PROJETO.md, na raiz do repositório.
+Leia primeiro AGENTS.md, a entrada da memória e as seções 1 a 6; consulte o
+histórico da seção 7 e as instruções das pastas conforme a tarefa.
+Confira o código real e git status antes de alterar; preserve mudanças locais
+que não sejam suas. Não trabalhe em cópias de .tools/publish-review.
+O cliente usa o catálogo sem conta. Administradores usam a API Java com JWT;
+a API acessa o PostgreSQL Supabase por JDBC e TLS. Não há senha de demonstração.
+Resultados antigos, permissões de ferramentas e processos de outro atendimento
+não devem ser tratados como atuais. Não reaplique seed, migrations ou bootstrap
+em uma instalação já configurada por causa de um relato antigo.
+Atualize o mesmo CONTEXTO_DO_PROJETO.md em toda entrega com mudanças.
+Coordene os agentes disponíveis para cada pedido e obtenha revisão independente
+de cada implementação, conforme o AGENTS.md. Informe limitações de disponibilidade.
+Nunca exponha credenciais. Commit e push exigem minha aprovação explícita para
+o conteúdo, mensagem e destino apresentados. Aguarde meu pedido de trabalho.
+```
+
+O arquivo conserva o contexto técnico e as decisões disponíveis, não uma
+transcrição literal de todas as mensagens nem a memória interna de uma IA.
+Ele não substitui o banco, os assets, o código ou o documento privado de acessos.
+Para perder apenas o chat, basta conservar a pasta do projeto. Para recuperar
+após perder o computador, é necessário também ter cópia do código/documentação
+publicados com aprovação e recuperação privada dos acessos e do banco.
+
+<a id="decisoes"></a>
 ## 1. Objetivo e decisões do usuário
 
 **GitHub:** toda entrega com alterações deve ser preparada para envio, mas o
@@ -44,6 +148,32 @@ Identidade e conteúdo existentes a preservar:
 - A área administrativa não tem link público no rodapé. `/dogmania-painel` é um
   atalho para `/admin`; ocultar uma URL não substitui autorização na API.
 
+### 1.1. Decisões que não devem se perder entre atendimentos
+
+| Assunto | Estado vigente e razão | Rastreio no histórico |
+| --- | --- | --- |
+| Experiência do cliente | Catálogo sem cadastro/login; compra iniciada pelo WhatsApp da loja. Não existe checkout ou pagamento implementado. | 001, 015–016 |
+| Administração | Login exclusivo da equipe; cadastro, edição, exclusão e pausa de disponibilidade de produtos com autorização na API. | 001, 013–014 |
+| Persistência | Java + PostgreSQL Supabase substituíram a fase somente frontend/dados locais. Não restaurar CRUD em localStorage ou catálogo fictício como fallback. | 001, 008, 013 |
+| Identidade visual | Preservar logo fornecida, azul/dourado e fotografias reais de pets; referências visuais não substituem a marca da Dogmania. | Histórico inicial consolidado, 015–016 |
+| Header | Home e catálogo compartilham CatalogHeader; detalhe individual usa SiteHeader. Categorias mantêm navegação e busca por URL. | 015–016, 025–028 |
+| Subcategorias | A primeira implementação foi revertida; depois foram solicitadas novamente com dropdown. O estado atual inclui subcategorias e reaproveita a migration existente. | 017–018, 025–026 |
+| Clique na categoria | Abre todos os produtos daquela categoria; o dropdown continua disponível por hover e botão separado em toque. | 026 |
+| Conteúdo do dropdown | Excluídos título repetido, Ver todos os produtos, Adestramento e Comportamento, Raças e Marcas. Não reintroduzir pelo simples fato de constarem em uma referência antiga. | 026 |
+| Animação | Mini bounce do desenho ao hover/foco, inclusive com reduzir movimento por pedido explícito. A Sala dos Agentes permite caminhar com movimento reduzido e tem um controle próprio de pausa (041). | 019–024, 027–028 |
+| Escurecimento | Fundo abaixo do header, não sobre o cabeçalho; fade reversível de entrada/saída e tolerância ao retirar o ponteiro. | 027–028 |
+| Rodapé | Compacto e organizado, com endereço, horários, telefones, WhatsApp e Instagram; sem estimativas de minutos de transporte. | Pedidos iniciais consolidados, SiteFooter |
+| Sala dos Agentes | Escritório redesenhado em SVG pixelado a partir da planta de referência. Cães e gatos em pixel art circulam em trabalho e repouso, com memória de destinos, desvio de obstáculos, identificação e diálogos ilustrativos. O coletor local registra metadados por projeto. | 034, 039, 040–045 |
+| Orquestração técnica | O agente principal coordena especialistas disponíveis para cada pedido da Dogmania, com revisão independente de cada implementação e registro das validações. A regra está no [AGENTS.md](AGENTS.md#orquestração-e-revisão-técnica). | 046 |
+| Relatório único | Atualizar este arquivo em cada entrega; não espalhar o histórico entre novos relatórios. | 002, 033 |
+| Publicação | Preparar e revisar, depois obter aprovação específica para commit/push. Uma permissão antiga não autoriza novas publicações. | 003–004, 009, 029–030 |
+
+Horários **presentes no código em 25/10/2026**: segunda a sexta 08:30–19:00,
+sábado 08:30–13:00 e domingo fechado. O pedido inicial mencionou 08:00 no sábado,
+enquanto a imagem posterior e o código usam 08:30. Preservar o estado atual nesta
+tarefa documental e confirmar com o responsável antes de alterar esse horário.
+
+<a id="arquitetura"></a>
 ## 2. Arquitetura e pontos de entrada
 
 Checkout local encontrado em 19/10/2026: `C:\Users\Gustavo Kenzo\Desktop\Dogmania-Catalogo`.
@@ -139,6 +269,120 @@ principal, sem classificação inferida pelo nome. Filtros específicos não inv
 resultados. Adestramento e Comportamento, Raças e Marcas foram retirados da lista
 na entrada 026. Valores antigos já gravados não foram apagados do banco.
 
+### 2.1. Mapa visual do sistema
+
+```mermaid
+flowchart LR
+    Cliente["Cliente sem conta"] --> Front["React / TanStack Start - 8081"]
+    Admin["Administrador - /admin"] --> Front
+    Front -->|"HTTP /api/v1; Bearer nas ações protegidas"| API["Java / Spring Boot - 8080"]
+    API -->|"JDBC com TLS; role dogmania_api"| DB[("PostgreSQL no Supabase")]
+    API -->|"Upload opcional"| Storage["Supabase Storage"]
+    Front -->|"Link de compra"| WhatsApp["WhatsApp da loja"]
+```
+
+O Supabase hospeda os dados. **A autenticação implementada é do Java**, usando
+`admin_users`; não confundir com usuários ou sessões do Supabase Auth.
+Arquivos de apoio da squad não transformam essa aplicação em outra arquitetura:
+o código atual usa controllers, services, repositories, DTOs e entidades JPA.
+
+### 2.2. Onde mexer conforme o pedido
+
+Caminhos relativos à raiz deste repositório, para funcionar também em outro computador:
+
+| Pedido | Fonte principal e dependências |
+| --- | --- |
+| Alterar a home | [index.tsx](Dogmania-Catalogo/src/routes/index.tsx), CatalogHeader, HeroCarousel e SiteFooter |
+| Alterar o catálogo/filtros | [produtos.tsx](Dogmania-Catalogo/src/routes/produtos.tsx), [CatalogGrid.tsx](Dogmania-Catalogo/src/components/CatalogGrid.tsx), taxonomy e useProducts |
+| Alterar o detalhe/compra | [produto.$id.tsx](Dogmania-Catalogo/src/routes/produto.$id.tsx), [ProductCard.tsx](Dogmania-Catalogo/src/components/ProductCard.tsx), [whatsapp.ts](Dogmania-Catalogo/src/features/products/whatsapp.ts) |
+| Alterar navegação/dropdown/bounce | [CatalogHeader.tsx](Dogmania-Catalogo/src/components/CatalogHeader.tsx), [PetDrawing.tsx](Dogmania-Catalogo/src/components/PetDrawing.tsx) e [styles.css](Dogmania-Catalogo/src/styles.css) |
+| Alterar categorias/subcategorias | [model.ts](Dogmania-Catalogo/src/features/products/model.ts), [taxonomy.ts](Dogmania-Catalogo/src/features/products/taxonomy.ts), ProductEditor e contrato Java |
+| Alterar contato e rodapé | [store.ts](Dogmania-Catalogo/src/config/store.ts), [SiteFooter.tsx](Dogmania-Catalogo/src/components/SiteFooter.tsx); conferir links duplicados no footer |
+| Alterar banners/logo | [HeroCarousel.tsx](Dogmania-Catalogo/src/components/HeroCarousel.tsx), CatalogHeader, SiteHeader e assets existentes; manter [créditos](Dogmania-Catalogo/src/assets/IMAGE_CREDITS.md) |
+| Alterar login/painel | [AdminPage.tsx](Dogmania-Catalogo/src/features/admin/AdminPage.tsx), [api.ts](Dogmania-Catalogo/src/lib/api.ts), AuthController/AuthService e segurança Java |
+| Alterar formulário/listagem admin | [ProductEditor.tsx](Dogmania-Catalogo/src/features/admin/ProductEditor.tsx), [ProductManagementList.tsx](Dogmania-Catalogo/src/features/admin/ProductManagementList.tsx) e ProductDTO |
+| Alterar consultas/sincronização | [useProducts.ts](Dogmania-Catalogo/src/hooks/useProducts.ts), api.ts e [ProductRepository.java](backend-api/src/main/java/com/dogmania/api/repository/ProductRepository.java) |
+| Alterar regra de produto | [ProductService.java](backend-api/src/main/java/com/dogmania/api/service/ProductService.java), [ProductDTO.java](backend-api/src/main/java/com/dogmania/api/dto/ProductDTO.java), [Product.java](backend-api/src/main/java/com/dogmania/api/model/Product.java) e migrations |
+| Alterar autenticação/autorização | [SecurityConfig.java](backend-api/src/main/java/com/dogmania/api/config/SecurityConfig.java), [AuthService.java](backend-api/src/main/java/com/dogmania/api/service/AuthService.java), JwtTokenProvider, JwtAuthenticationFilter e CustomUserDetailsService |
+| Alterar upload | [UploadService.java](backend-api/src/main/java/com/dogmania/api/service/UploadService.java), UploadController, api.ts e supabase/setup_storage.sql |
+| Alterar auditoria/erros | [AuditService.java](backend-api/src/main/java/com/dogmania/api/service/AuditService.java), [GlobalExceptionHandler.java](backend-api/src/main/java/com/dogmania/api/exception/GlobalExceptionHandler.java) e triggers SQL |
+| Alterar inicialização local | [iniciar-local.ps1](iniciar-local.ps1), [start-local.ps1](backend-api/start-local.ps1) e [Iniciar Dogmania.cmd](<Iniciar Dogmania.cmd>) |
+| Alterar dependências | [package.json do frontend](Dogmania-Catalogo/package.json), seu bun.lock e [pom.xml](backend-api/pom.xml); não confundir com package.json da raiz |
+
+### 2.3. Stack, assets e arquivos especiais
+
+- Manifest do frontend em 25/10: React `^19.3.1`, TypeScript `^5.9.3`, Vite `^8.3.4`,
+  Tailwind `^4.3.3`, TanStack Router `1.170.41` e Start `1.168.60`. As versões
+  resolvidas devem ser conferidas no lockfile, não inferidas dos intervalos.
+- Backend: alvo Java 21, Spring Boot `3.5.16`, Springdoc `2.8.17` e JJWT `0.12.7`
+  no POM. JDK 26 foi usado neste computador em verificações anteriores; não é
+  requisito para elevar o alvo da linguagem ou liberar recursos preview.
+- O wrapper `@lovable.dev/vite-tanstack-config` já instala os plugins do frontend;
+  não duplicar React, Tailwind, TanStack ou Nitro em vite.config.ts. O projeto
+  continua conectado ao Lovable; preservar histórico publicado.
+- TanStack usa `src/routes/` e o layout `__root.tsx`; não criar uma estrutura
+  Next.js `app/`/`pages/` por causa de exemplos genéricos. routeTree.gen.ts é gerado.
+- Banners locais: `banner-1.jpg`, `banner-2.jpg` e `banner-3.jpg`, com origem
+  registrada em IMAGE_CREDITS.md. O carrossel usa Embla, intervalo de 6 segundos,
+  controles e indicadores, com parada por interação/hover.
+- Logos originais e versões preparadas estão em `src/assets/`; antes de apagar
+  uma versão, conferir referências reais. Fotos de produtos locais não são um
+  fallback autorizado para substituir silenciosamente dados da API.
+- `.tools/` guarda cópias de revisão e auxiliares ignorados; `.vscode/settings.json`
+  evita importar essas cópias como projetos Java. `tests/` guarda ferramentas que
+  podem ter efeitos reais; ler o comando e o escopo antes de executar.
+- Em 25/10 também existe um kit local `.agents/` com papéis, skills e regras de
+  orquestração. Ele aparece não rastreado no Git, não foi alterado nesta entrega
+  e não deve ser tratado como incluído num clone remoto. Seus exemplos genéricos
+  não comprovam funcionalidades implementadas nem substituem instruções do usuário
+  e regras aplicáveis. Não presumir que subagentes de um chat sobrevivam em outro.
+
+### Sala dos Agentes
+
+- Painel administrativo: **Sala dos Agentes**, em /admin?aba=agentes.
+  [AdminPage.tsx](Dogmania-Catalogo/src/features/admin/AdminPage.tsx) reaproveita
+  o login e carrega a sala apenas na sessão administrativa. O
+  [escritório](Dogmania-Catalogo/src/features/admin/agent-office/AgentOffice.tsx)
+  mostra perfis, estações, descanso, reuniões e linha do tempo. O
+  [modelo da sala](Dogmania-Catalogo/src/features/admin/agent-office/model.ts)
+  concentra a equipe base, nomes, estilos e a fila visual de reuniões.
+- O [cenário em SVG](Dogmania-Catalogo/src/features/admin/agent-office/OfficeMap.tsx)
+  reproduz em pixel art as salas e o mobiliário da referência. A
+  [planta de circulação](Dogmania-Catalogo/src/features/admin/agent-office/officeLayout.ts)
+  define as divisórias, janelas, portas, obstáculos e destinos. A
+  [navegação](Dogmania-Catalogo/src/features/admin/agent-office/officeNavigation.ts)
+  planeja rotas com espaço para o corpo do avatar. A
+  [circulação compartilhada](Dogmania-Catalogo/src/features/admin/agent-office/officeTraffic.ts)
+  verifica o espaço entre cães e gatos antes de cada passo. Os avatares
+  usam outro acesso quando disponível e cedem a vez em passagens estreitas.
+  Repouso é o estado de atividade exibido enquanto o avatar passeia.
+  Em trabalho, visitas às estações se alternam com trajetos por áreas
+  livres. Cada pet lembra até cinco destinos recentes e prioriza lugares
+  diferentes. Em congestionamentos, a rota pode ceder passagem, trocar de
+  destino ou usar um trajeto local. Os quatro vasos nos cantos integram
+  os obstáculos da navegação. O tamanho é compartilhado entre o desenho e a
+  navegação. Os sprites em SVG têm poses de frente e de perfil em uma grade
+  18×18 com contorno escuro e bordas nítidas. De perfil, os pets têm corpo
+  mais largo e quatro patas que alternam aos pares em quatro fases. O
+  deslocamento pelo mapa continua com movimento reduzido, que desativa
+  o ciclo de patas e o balanço do sprite. O botão Pausar caminhada
+  congela as posições. O nome aparece ao passar o mouse, focar pelo
+  teclado ou tocar no avatar.
+  A rolagem horizontal permite explorar o escritório no celular.
+- API de leitura: GET /api/v1/admin/agent-office, com JWT e papéis ADMIN ou
+  SUPER_ADMIN, resposta sem cache. O
+  [serviço Java](backend-api/src/main/java/com/dogmania/api/service/AgentOfficeService.java)
+  resume arquivos locais. O frontend consulta a cada 1,5 segundo enquanto a
+  aba está visível. Sem eventos, a sala mostra a equipe em repouso e o aviso
+  de que aguarda o Codex.
+- Coleta: [instalador](scripts/agent-office/install-hooks.mjs) e
+  [coletor](scripts/agent-office/record-event.mjs), executados com Node.
+  O diário em .private/agent-office é local ao computador da API e ignorado
+  pelo Git. Somente horários, tipos, perfis e identificadores com hash são
+  armazenados. O cenário não lê transcrições. Não existe endpoint para escrever
+  eventos e a sala não requer migration.
+
+<a id="contratos"></a>
 ## 3. Regras e contratos que atravessam as camadas
 
 - Produto: ID UUID, nome, descrição, preço, categoria, subcategoria opcional, imagem HTTPS, selo opcional
@@ -173,6 +417,60 @@ Base da API: `http://localhost:8080/api/v1`.
 
 O contrato detalhado e os limites estão em `backend-api/README.md`.
 
+### 3.1. Fluxos completos para raciocinar sobre uma mudança
+
+**Catálogo e filtros:** a rota lê `busca`, `categoria` e `subcategoria`. useProducts
+busca páginas da API (até 100 por página) e mantém cache público separado do admin;
+CatalogGrid/taxonomy aplicam os filtros da navegação. A API também oferece busca
+por `q` e `category`, mas não presumir que o frontend atual envie todos os filtros
+para o servidor. Slugs e relações de subcategoria são definidos em taxonomy.ts;
+produto sem classificação não deve ganhar uma categoria por inferência do nome.
+
+**Login:** AdminPage → api.login → POST /auth/login → limite por IP → autenticação
+BCrypt da conta ativa em admin_users → JWT → sessionStorage com expiração →
+/auth/me para reconhecer a sessão. Escritas usam Authorization Bearer e passam
+por Spring Security; esconder uma rota ou botão não faz autorização. Há limite
+de 10 tentativas de login por IP em 5 minutos por instância, incluindo acertos.
+O navegador descarta a sessão expirada e o backend revalida a conta a cada acesso.
+Não há fluxo de criação de contas de clientes ou registro público de admins.
+
+**CRUD e disponibilidade:** ProductEditor/AdminPage → api.ts → controller →
+validação DTO → ProductService transacional → repository/JPA → constraints/RLS
+PostgreSQL → trigger de auditoria → DTO → atualização de consultas. A mutação
+invalida caches e avisa outras abas via BroadcastChannel; refetch periódico ocorre
+em 30 segundos, com staleTime de 10 segundos. Pausar preserva o registro; excluir
+remove o produto. A ação de exclusão exige confirmação na interface.
+
+**Compra:** ProductCard ou detalhe cria um link wa.me com mensagem de produto,
+para o número em store.ts. O sistema não processa pagamento, entrega ou pedido
+interno. Não inventar um carrinho ou checkout já existente.
+
+**Imagem:** URL HTTPS pode ser informada no editor. Envio de arquivo usa a API
+protegida e Storage opcional; os bytes iniciais e o tamanho são validados antes
+do envio. Chave de serviço permanece no backend. Storage desligado retorna 503,
+e upload falho não equivale a produto salvo com sucesso.
+
+### 3.2. Limites e diferenças que atravessam o contrato
+
+| Campo/assunto | Contrato atual a preservar e verificar nas fontes |
+| --- | --- |
+| Nome | Frontend chama name; DTO JSON responde title e aceita name como alias. DTO exige não vazio e até 150; banco exige pelo menos 2 caracteres após trim. |
+| Descrição | Obrigatória no DTO, até 2000 caracteres. |
+| Preço | Obrigatório, positivo; BigDecimal e numeric(10,2), até 8 inteiros e 2 decimais; banco rejeita NaN. |
+| Categoria | CATEGORIES controla opções do frontend; backend exige texto não vazio até 50 e o banco mínimo de 2 após trim. Não existe enum SQL das oito opções. |
+| Subcategoria | Opcional; quando enviada deve ter 2–80 caracteres. Serviço normaliza valor e banco tem CHECK; a lista editorial de opções vive no frontend. |
+| Imagem | Obrigatória, URL HTTPS sem espaços e até 2048 caracteres; upload separado limita bytes a 5 MiB. |
+| Badge | Opcional, até 50 caracteres no DTO. |
+| active | Cadastro assume true quando omitido; edição preserva se não fornecido; false não aparece em endpoints públicos. |
+| Paginação/ordenação | API limita páginas a 100 itens e aceita apenas campos de ordenação explicitamente listados no ProductService. |
+| Falha de transporte | api.ts usa timeout de 15 s e ApiError com status 0. Não confundir com 401 (autenticação), 403 (autorização), 404 (ausente/inativo), 409 (constraint) ou 429 (limite de login). |
+
+Esses limites descrevem a implementação atual, não afirmam que todas as camadas
+validam de forma idêntica. Por exemplo, o mínimo de nome/categoria no banco é mais
+estrito que as anotações do DTO. Uma futura alteração precisa conferir os dois
+contratos e os campos exibidos pelo editor, sem ajustar o banco às cegas.
+
+<a id="dados"></a>
 ## 4. Banco e segurança
 
 Migrations existentes, nesta ordem:
@@ -228,6 +526,52 @@ possui DACL restrita ao usuário atual e SYSTEM; isso não criptografa o conteú
 Não copiar valores para contexto público, logs ou mensagens. A pasta inteira
 `.private/`, os envs reais e `.tools/` estão ignorados pelo Git.
 
+### 4.1. Memória do modelo de dados e privilégios
+
+| Área | Dados e invariantes | Acesso esperado |
+| --- | --- | --- |
+| products | UUID, name, description, price, category, subcategory opcional, image, badge, active, sort_order e timestamps; dinheiro positivo/finito e constraints descritas acima | dogmania_api faz CRUD; visibilidade pública é filtrada pelo Java |
+| admin_users | UUID, name, email único também sem distinguir caixa, password_hash BCrypt, role ADMIN/SUPER_ADMIN, active e timestamps | Runtime lê para autenticar; INSERT é de bootstrap e deve permanecer revogado após a configuração conforme o procedimento |
+| audit_logs | UUID, action, entity_type, entity_id, performed_by, details e created_at; append-only | Trigger registra produto na mesma transação; runtime não recebe escrita direta |
+
+Não usar um eventual advisory de ausência de policy em audit_logs como motivo para
+abrir a tabela: a ausência de acesso público é intencional. O audit de produto
+registra a identidade de conexão; AuditService registra ator autenticado/login
+no log da aplicação. Não há FK de conta Supabase Auth por trás do login Java.
+As migrations são a definição versionada do schema; entidades JPA não aplicam DDL
+porque `ddl-auto` é validate.
+
+### 4.2. Catálogo de configuração, sem valores privados
+
+Fontes públicas: [application.yml](backend-api/src/main/resources/application.yml),
+[exemplo do backend](backend-api/.env.example) e
+[exemplo do frontend](Dogmania-Catalogo/.env.example).
+
+| Variável ou grupo | Onde é usada | O que a próxima IA precisa saber |
+| --- | --- | --- |
+| VITE_API_URL | Frontend | Base pública da API, normalmente http://localhost:8080/api/v1; VITE_* vai ao navegador |
+| SUPABASE_DB_URL | Backend | JDBC do banco; usar host/método reais configurados e TLS verify-full com CA; não publicar a configuração local |
+| SUPABASE_DB_USER / SUPABASE_DB_PASSWORD | Backend | Login da role restrita, não operador postgres; senha somente no arquivo privado/ambiente |
+| JWT_SECRET_KEY / JWT_EXPIRATION_MS | Backend | Assinatura privada e validade; default de expiração 3600000 ms; não regenerar segredo por uma falha de rede |
+| CORS_ORIGINS | Backend | Origens exatas do frontend, incluindo http://127.0.0.1:8081; localhost e 127.0.0.1 são origens distintas |
+| SERVER_PORT | Backend | Padrão 8080; alinhar frontend, iniciador e URLs se houver mudança |
+| API_DOCS_ENABLED | Backend | Documentação desligada por padrão; rotas de docs também estão protegidas no SecurityConfig |
+| DOGMANIA_BOOTSTRAP_ADMIN_ENABLED / EMAIL / PASSWORD | Bootstrap Java | Opt-in de primeiro admin; desativar e remover a senha do env após a configuração; não é mecanismo de redefinição de senha |
+| STORAGE_ENABLED / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY | Backend | Upload opcional ao bucket product-images; habilitar só com configuração válida; nunca enviar service key ao navegador |
+
+**Arquivos reais privados:** `.private/ACESSOS_DO_SISTEMA.local.txt`,
+`backend-api/.env.local`, `Dogmania-Catalogo/.env.local` e certificado local.
+Nenhum deles deve ser lido inteiro no chat ou incluído num pacote público de memória.
+Nomes de variáveis e caminhos bastam para orientar uma configuração autorizada.
+
+Os scripts de configuração podem criar e trocar credenciais; não são necessários
+para abrir todos os dias uma instalação que já funciona. `start-local.ps1 -Check`
+só confirma presença de arquivo/ferramentas; não valida rede, senha ou JDBC.
+O Supabase MCP conectado em 21/10 permitiu inspeção via HTTPS; isso não transforma
+o runtime da aplicação numa integração REST e não prova que a porta JDBC local
+esteja acessível. O acesso de ferramenta precisa ser reconfirmado em cada atendimento.
+
+<a id="operacao"></a>
 ## 5. Como executar e validar
 
 No Windows já configurado, o ponto de entrada simplificado é
@@ -237,6 +581,15 @@ da API/site e abre o navegador. Fechar as janelas dos serviços ou usar Ctrl+C
 encerra o uso local. Nenhum provisionamento ou instalação automática é disparado.
 
 Pré-requisitos: JDK 21, Maven 3.9 e Bun; banco Supabase configurado.
+
+Conectividade: a rede do computador precisa permitir a saída TCP para o Session
+pooler na porta 5432. Em 21/10/2026, o catálogo e o login ficaram indisponíveis
+porque a API não conseguia acessar o banco a partir da rede de visitantes da
+instituição. Após confirmar a troca real para o roteador do celular com dados
+móveis, a conexão, a API e o login voltaram sem mudar senhas, grants ou RLS.
+Se ocorrer novamente, conferir a rede ativa e Test-NetConnection antes de
+reprovisionar o banco ou redefinir acessos. Usar uma rede permitida ou solicitar
+à administração da rede a liberação necessária; não enfraquecer TLS/firewall.
 
 1. Seguir `supabase/README.md` para migrations, role de runtime e conexão TLS.
 2. Configurar as variáveis de `backend-api/.env.example` na IDE/no ambiente ou
@@ -276,9 +629,116 @@ O runner de SQL omite as extensões opcionais históricas uuid-ossp/pgcrypto e s
 funções Supabase Auth somente para interpretar a primeira migration; a segunda
 remove aquelas policies. Não valida JDBC/TLS ou Supabase hospedado.
 
+### 5.1. Retomar sem chat ou em outro computador
+
+**Mesmo computador, chat perdido:** abrir a raiz real, ler este documento e
+AGENTS, conferir mudanças locais e usar o iniciador. Arquivos, dados e credenciais
+não deixam de existir por trocar de chat; uma nova IA não precisa recriar admins
+ou produtos para obter contexto.
+
+**Outra máquina, mesmo Supabase:** obter o repositório/publicação aprovada e seus
+arquivos de documentação; instalar dependências pelos manifests/locks; configurar
+os envs por canal privado com os acessos autorizados existentes. Não aplicar
+migrations/seed novamente só por ser uma máquina nova: o banco remoto continua
+sendo o mesmo. Checar rede, TLS, CORS e contrato antes de operar sobre dados reais.
+
+**Banco ou instalação novos:** confirmar que se trata realmente de um ambiente
+novo e seguir README do banco/API, migrations em ordem e bootstrap opt-in.
+Migrations podem alterar dados; seed e a ferramenta de exemplos gravam produtos.
+A memória não contém dump e não restaura registros perdidos. Backup/restauração
+do Supabase e recuperação privada das credenciais são procedimentos separados.
+
+**Perda do computador:** a cópia deste arquivo no Git só existirá após commit e
+push aprovados. Mudanças locais, `.agents/` não rastreada e arquivos privados não
+estão automaticamente em backup. Nunca resolver isso versionando senhas.
+
+### 5.2. Diagnóstico por sintoma
+
+| Sintoma | Primeiras conferências | Aprendizado preservado |
+| --- | --- | --- |
+| Site não abre em 8081 | Pasta correta, dependências e processo do frontend; ler saída do iniciador | Navegador aberto não mantém servidor em execução |
+| Site abre, catálogo falha e admin não entra | Conferir API 8080 e alcance TCP ao host real do banco antes de culpar a senha | API desligada causou os dois sintomas em 21/10 |
+| Pooler expira, painel Supabase abre | Conferir rede ativa, porta 5432, origem da conexão e estado do projeto | HTTPS 443 e JDBC TCP 5432 são caminhos diferentes |
+| Troca de internet relatada, erro persiste | Conferir qual rede o computador realmente usa; se celular, assegurar dados móveis independentes | A rede de visitantes ainda estava ativa no incidente; após troca confirmada para dados móveis funcionou |
+| permission denied for table products no PostgREST | Identificar a origem da consulta e os grants da role em uso | Data API pública não recebe acesso à tabela; não liberar anon/authenticated para contornar um problema do Java |
+| Login 401 com API acessível | Distinguir email/senha, expiração e conta ativa; conferir o acesso fornecido localmente | Não redefinir contas com base apenas em falha de transporte ou token antigo |
+| Login 503 | Conferir disponibilidade do serviço de autenticação e conexão com o PostgreSQL | Credenciais inválidas continuam retornando 401. O frontend exibe a mensagem segura da API. |
+| Login 429 | Conferir limite e aguardar janela; evitar tentativas repetidas | Limite por IP/instância também conta logins bem-sucedidos |
+| Produto pausado some da vitrine | Conferir active e diferenças entre consulta pública/admin | É regra intencional, não exclusão do banco |
+| Filtro de subcategoria vazio | Conferir URL, taxonomy e classificação realmente persistida | Produto sem subcategoria não pode ser classificado pelo nome apenas para preencher a tela |
+| Ícone aparece, mas não salta | Conferir styles.css, wrappers separados e regras de reduzir movimento | A exceção global solicitada deve abranger o bounce sem afetar toda a UI |
+| Erros Java em .tools/publish-review | Abrir fontes reais e conferir exclusões do VS Code | Essa pasta é cópia antiga, não outro backend para manter |
+| Flexible Constructor Bodies em código Lombok | Comparar diagnóstico do editor com compilação e versão da extensão | Regressão da extensão foi contornada em 20/10 sem mudar o alvo Java 21 |
+| Upload retorna 503 | Conferir ativação/configuração de Storage no backend | URL HTTPS no editor continua sendo o fluxo alternativo previsto |
+
+Conferências manuais de conectividade, apenas quando necessárias e autorizadas:
+
+```powershell
+# Na raiz do checkout, sem imprimir conteúdo de envs reais:
+Get-NetTCPConnection -State Listen -LocalPort 8080,8081 -ErrorAction SilentlyContinue
+Invoke-WebRequest 'http://127.0.0.1:8080/api/v1/products?size=1'
+Test-NetConnection -ComputerName 'HOST_REAL_DO_SESSION_POOLER' -Port 5432
+```
+
+Substituir o host pelo configurado, sem copiar senha ou URL com credenciais.
+Capturas de rede, instalações, serviços externos de diagnóstico e alteração de
+políticas não são passos automáticos deste roteiro. A autorização ao Check-Host
+em 21/10 foi específica daquela verificação, não uma permissão permanente.
+
+### 5.3. Encerramento de uma entrega e continuidade
+
+1. Conferir quais arquivos já estavam alterados e preservar trabalho do usuário.
+2. Consolidar os achados da revisão independente, verificar a versão integrada
+   e identificar limitações na revisão ou nos testes.
+3. Atualizar o resumo e a entrada do histórico único com data, papéis acionados,
+   validações e pendências. Separar evidências atuais das históricas.
+4. Rever diff, caminhos e segredos da seleção pública pretendida.
+5. Apresentar conteúdo, mensagem e repositório/branch antes de pedir autorização
+   para commit/push. Se o escopo mudar, apresentar a seleção atual novamente.
+6. Depois de envio aprovado, confirmar commit e refs, registrar a evidência e
+   deixar explícita qualquer pendência.
+
+### Ativar o acompanhamento do Codex
+
+1. Na raiz do checkout, com Node no PATH, execute o comando abaixo se a
+   configuração local ainda não existir.
+
+   ~~~powershell
+   node scripts/agent-office/install-hooks.mjs
+   ~~~
+
+   O instalador cria .codex/hooks.json com caminho absoluto para o coletor.
+   Se já houver um arquivo, ele exibe a configuração para mesclar e preserva a
+   versão existente. Não publique esse arquivo local.
+2. Abra o projeto no Codex e revise os hooks em **Settings → Hooks** ou
+   **Review hooks**, depois autorize os hooks do projeto. Abra uma nova sessão
+   nesse checkout se a sessão anterior ainda não tiver carregado a configuração.
+3. Inicie a Dogmania normalmente, entre com o login administrativo existente e
+   abra **Sala dos Agentes**. Uma tarefa iniciada em uma sessão instrumentada
+   deve produzir o primeiro sinal.
+4. Se o Java for iniciado fora da pasta backend-api, configure
+   DOGMANIA_AGENT_OFFICE_JOURNAL com o caminho da pasta .private/agent-office
+   da instalação. O padrão relativo pressupõe backend-api como diretório de
+   trabalho. Para sessões em outro computador, este diário local não sincroniza
+   automaticamente.
+
+Uma delegação registrada ou uma solicitação de contato entre IDs reconhecidos
+entra na fila visual quando os dois participantes estão ativos. Os balões
+ilustram a conversa sem exibir a mensagem original. O encerramento volta a
+colocar o avatar em repouso. Atividade sem novos sinais por 45 minutos expira
+para evitar avatares presos após uma queda. A interface mostra as 30 atividades
+recentes do diário, com janela de 24 horas e limite de 1.500 eventos lidos.
+
+<a id="pendencias"></a>
 ## 6. Últimas evidências e pendências conhecidas
 
-Última entrega de código verificada em **19/10/2026**:
+**Retomada em 25/10/2026:** esta entrega conferiu fontes e documentação, sem
+iniciar serviços ou acessar o banco. A última operação real confirmada continua
+sendo 21/10: catálogo com seis ativos, painel com sete produtos e login ADMIN
+restabelecidos na entrada 032. Os parágrafos datados de 19/10 abaixo são registros
+históricos e não descrevem um catálogo atualmente vazio. Ver também 6.1 e 6.2.
+
+Validações de base registradas em **19/10/2026** (históricas):
 
 - Build frontend e TypeScript aprovados; auditoria npm retornou `{}`, exit 0.
 - Java: 31 testes aprovados, zero falhas/erros/ignorados, repetidos após atualizar
@@ -298,12 +758,13 @@ PostgreSQL 17.11; frontend em 127.0.0.1:8081. Login ADMIN, /auth/me e listagens
 administrativas com e sem busca confirmados; catálogo público, site e /admin HTTP
 200, com origem CORS correta. Catálogo remoto vazio, sem seed de demonstração.
 O relatório histórico de testes acima não foi reexecutado nesta configuração.
-Não houve automação visual/E2E do navegador: o runtime node_repl exigido pela skill
-Computer Use não estava disponível. Os resultados atuais são de JDBC e HTTP reais.
+Na configuração de 19/10 não houve automação visual/E2E via Computer Use: o runtime
+exigido não estava disponível. Em 21/10 houve conferência pontual no Chrome isolado
+por Playwright, sem nova suíte E2E; ver entrada 032. Isso não valida toda a interface.
 Logs e PIDs dos processos iniciados ficam em `.tools/`; não enviar essas pastas.
 
-Ainda pendentes: homologação ponta a ponta no navegador com Java + Supabase reais,
-JDBC/TLS, políticas remotas de Storage, auditoria completa de CVEs Maven,
+Ainda pendentes: homologação ampla ponta a ponta e integração automatizada em novos
+ambientes, políticas remotas de Storage, auditoria completa de CVEs Maven,
 backup/restauração e controles de hospedagem. O limitador de login é por instância;
 produção precisa considerar gateway e proxies confiáveis. Não há garantia de
 segurança absoluta. Resultados de testes isolados não são um pentest completo.
@@ -312,6 +773,44 @@ segurança absoluta. Resultados de testes isolados não são um pentest completo
 à regra do arquivo único. O contexto necessário foi consolidado aqui; próximos
 relatórios de alterações serão acrescentados somente neste arquivo.
 
+### 6.1. Estado conhecido, com data e limite da evidência
+
+| Área | Última evidência registrada | O que ainda precisa ser confirmado em uma retomada |
+| --- | --- | --- |
+| Código e localização | 25/10/2026: fontes reais e manifests conferidos para esta memória; HEAD local 921e8a5 | Mudanças posteriores, branch, diff e refs remotas |
+| Execução e rede | 21/10/2026: API 8080 e site 8081 funcionaram após troca de rede | Serviços e rede ativos agora; PIDs históricos não são identificadores permanentes |
+| Produtos e admin | 21/10/2026: 6 ativos, 7 no painel, login ADMIN e /auth/me 200 | Conteúdo atual e conta ativa; nenhuma nova leitura de banco em 25/10 |
+| Interface | Entrada 028: build/tipos/lint e conferência de fade/bounce desktop/toque; entrada 032: navegação/login reais em Chrome isolado | Cobertura funcional completa, novos tamanhos e regressões após mudança |
+| Banco/TLS | Instalação e role confirmadas por JDBC em 19/10; operação real e inspeção Supabase em 21/10 | Compatibilidade e TLS em outro ambiente ou após mudança de schema/credencial |
+| Testes | Suítes e seus resultados são históricos nas entradas correspondentes | Não foram executados testes de aplicação nesta entrega de documentação |
+| Publicação | 921e8a5 foi o último commit local observado; 031/032 permaneceram locais | Esta memória e seus apontadores ainda exigem aprovação própria para publicação |
+
+### 6.2. Pendências registradas e limites de escopo
+
+- **Continuidade desta entrega:** arquivo canônico salvo localmente; falta aprovação
+  do conteúdo atual antes de commit/push. Não existe autorização automática para
+  o novo escopo a partir da mensagem proposta na entrega anterior.
+- **Produção:** hospedagem, HTTPS, gestão de segredos, backups com restauração
+  comprovada, observabilidade e controles de gateway não foram homologados por
+  esta memória. Não tratar o endereço localhost como implantação pública.
+- **Storage:** configuração remota e políticas precisam de revisão antes de ativar
+  upload real. Upload desligado com URL de imagem informada é estado previsto.
+- **Qualidade:** ampliar homologação integrada Java/PostgreSQL e interface,
+  revisar dependências e limitação de login em ambiente com proxies. As provas
+  históricas não certificam segurança absoluta nem cobertura completa.
+- **Contrato:** manter atenção à diferença de mínimos de nome/categoria entre
+  DTO e banco. Não foi corrigida nesta tarefa, exclusivamente documental.
+- **Conteúdo da loja:** confirmar abertura de sábado se houver pedido de mudança;
+  o código atual usa 08:30, e o primeiro texto do usuário mencionava 08:00.
+- **Kit de agentes:** `.agents/` é material local não rastreado observado em 25/10;
+  seu versionamento/integração não foi solicitado nem realizado nesta entrega.
+  Recomendações genéricas sobre pastas, branches ou arquitetura precisam ser
+  reconciliadas com regras aplicáveis e o pedido antes de orientar alterações.
+
+Pendência é informação para a próxima decisão, não autorização para executar
+migração, pentest, mudança de hospedagem ou refatoração sem pedido correspondente.
+
+<a id="historico"></a>
 ## 7. Histórico contínuo
 
 ### 2026-10-19 — 001 — Consolidação da refatoração anterior
@@ -1442,6 +1941,523 @@ relatórios de alterações serão acrescentados somente neste arquivo.
   incluído no próprio commit; o resultado final deve ser confirmado pelo SHA do
   commit, refs remotas e comprovante no chat, pois o arquivo é salvo antes do push.
 
+### 2026-10-21 — 031 — Diagnóstico de indisponibilidade local do catálogo e login
+
+- Pedido: recuperar o catálogo local e o acesso administrativo com as credenciais
+  já informadas. Não houve solicitação de redefinição de senhas.
+- Estado observado: frontend em 127.0.0.1:8081 respondeu HTTP 200 para /produtos
+  e /admin. Nenhuma API estava ouvindo na porta 8080. A configuração local existe,
+  usa a porta esperada, a role restrita da aplicação e bootstrap administrativo
+  desativado. O check do iniciador confirmou arquivo e ferramentas disponíveis.
+- Tentativa de recuperação: start-local.ps1 foi executado em segundo plano, com
+  saída em .tools/backend-recovery.stdout.log e .stderr.log, ignorados pelo Git.
+  A API encerrou a inicialização por JDBCConnectionException / PSQLException,
+  causada por SocketTimeoutException de conexão. Não houve aplicação iniciada,
+  erro de senha PostgreSQL, falha de certificado nem resposta de tenant inválido.
+  O processo auxiliar encerrou; não há API funcional na porta 8080 ao fim da inspeção.
+- Isolamento: DNS do Session pooler resolveu três IPv4; conexões TCP à porta 5432
+  expiraram em todos eles. A porta alternativa 6543 também não respondeu nas
+  verificações pontuais. Uma nova conexão independente por Node ao mesmo host e
+  porta 5432 expirou após cerca de 10 segundos. Isso ocorre antes da autenticação
+  PostgreSQL; ainda não é possível concluir nada sobre a senha do administrador.
+- Supabase: HTTPS do projeto respondeu; /auth/v1/health respondeu HTTP 200 com a
+  chave publicável já fornecida. Uma consulta sem privilégios de servidor à Data
+  API de products foi negada por falta de permissão, conforme o modelo atual de
+  acesso exclusivamente pelo Java. A consulta pgrst_source apresentada pelo usuário
+  corresponde a essa leitura via PostgREST, sem demonstrar falha de grants JDBC.
+  Não foram liberadas tabelas para anon/authenticated nem alteradas políticas RLS.
+- Usuário confirmou projeto ativo e Session pooler com o mesmo host e porta da
+  configuração. Regras de bloqueio locais encontradas eram específicas do usuário
+  de sandbox; não correspondiam à identidade do processo de diagnóstico. Isso não
+  identifica a origem do timeout nem autoriza desabilitar firewall ou segurança.
+- Capturas posteriores fornecidas pelo usuário confirmaram ausência de IPs banidos
+  e de restrições de rede no projeto. O usuário confirmou conexão pela internet do
+  celular; a nova tentativa TCP ao host configurado também expirou. Uma comparação
+  sem autenticação com um pooler público citado na documentação oficial também
+  não estabeleceu TCP. Nenhuma credencial foi enviada a endpoint alternativo e
+  o host configurado não foi modificado.
+- Diagnóstico do computador: TCP 443 ao projeto e ao site Supabase respondeu, assim
+  como o frontend local. Proxy do Windows/PAC não configurados; só Windows Defender
+  identificado. Perfis efetivos do firewall permitem tráfego de saída e não foi
+  encontrada regra de bloqueio correspondente ao usuário do processo. Nenhuma
+  configuração de firewall, antivírus, proxy, VPN ou adaptador foi modificada.
+- Conferência independente: usuário executou Test-NetConnection ao host configurado
+  e porta 5432 em PowerShell aberto pelo menu Iniciar; TcpTestSucceeded=False.
+  Portanto, a falha não se restringe ao processo de execução deste chat. A rede
+  atual mostrou IPv6=NoTraffic; conexão ao IPv6 oficial do banco direto falhou
+  por rede/endereço indisponível. Não foi trocada a configuração JDBC para IPv6.
+- DNS: comparação com resolução pública por HTTPS retornou os mesmos três IPv4
+  do pooler configurado. Não houve necessidade nem execução de alteração/limpeza
+  de DNS. TLS e credenciais não foram enfraquecidos para tentar contornar o timeout.
+- Pendência externa: restabelecer conexão TCP ao pooler. É necessário investigar
+  o caminho de rede/endpoint com o provedor ou suporte Supabase, apresentando host
+  e portas, timeout antes da autenticação, falha em duas redes relatada pelo
+  usuário, ausência de bans/restrições e resultado independente do PowerShell.
+  Não enviar senhas, tokens ou .env ao suporte. Origem do timeout não confirmada;
+  não atribuir falha ao código Java, credenciais, operadora, computador ou serviço
+  externo sem novas evidências. Depois de conectividade restaurada, iniciar API,
+  verificar produtos reais e validar a conta administrativa existente.
+- Segurança/escopo: sem alterações de código, configuração, senhas, contas, produtos
+  ou estrutura do banco; nenhum login validado enquanto a API estava indisponível.
+  Não foram executadas suítes de testes nem requisições de escrita em produtos.
+  Preservado o processo do frontend e os processos Java/PowerShell alheios à API.
+- Arquivo público alterado: somente este relatório único. GitHub permanece no commit
+  921e8a5 da publicação aprovada anteriormente; nenhum novo commit ou push executado.
+  Logs locais continuam ignorados. A recuperação ainda depende de resolver o acesso
+  TCP ao banco e, depois, iniciar a API e verificar catálogo e login reais.
+
+### 2026-10-21 — 032 — Acesso autorizado ao Supabase e diagnóstico da conexão TCP
+
+- Pedido: acessar o computador e o Supabase para corrigir a indisponibilidade.
+  Preservada a regra de aprovação separada para commit/push.
+- Integração: Supabase foi localizado, sugerido e depois instalado/conectado pelo
+  usuário nesta sessão. O acesso foi confirmado por get_project e consultas SQL
+  somente de leitura ao projeto existente. Não presumir que uma futura IA tenha
+  essa conexão automaticamente. Controle visual de Windows exige node_repl, que
+  não está disponível nesta sessão; não foi usado outro mecanismo de UI para
+  contornar as instruções da skill Computer Use.
+- Banco real: projeto ACTIVE_HEALTHY, PostgreSQL 17, sete produtos cadastrados,
+  seis ativos. Conta administrativa solicitada existe, ativa, com role ADMIN
+  e hash em formato BCrypt; o valor do hash não foi lido nem exibido. Isso não
+  substitui validar a senha pelo login real assim que a API puder iniciar.
+- Runtime: role dogmania_api pode fazer login, não é superusuária, não possui
+  bypass RLS nem validade expirada. SELECT em products e admin_users permitido.
+  Foram observadas 13 conexões de um máximo de 60, sem conexões da aplicação.
+  Não há evidência de saturação, conta desativada ou falta desses grants.
+- Logs: agregação do PostgreSQL/PgBouncer no intervalo investigado não encontrou
+  ocorrências de timeout, authentication failed, FATAL ou permission denied.
+  Foram lidos apenas contagens/metadados necessários, sem consultas de usuários,
+  senhas, tokens, hashes ou dumps. Não houve migrations ou alterações manuais no banco.
+- Windows: firewall efetivo permite saída; sem regras IPsec ativas e sem regra
+  de bloqueio correspondente à identidade usada. IPv6 está habilitado no adaptador
+  e sem DisabledComponents global, mas a rede continua sem tráfego IPv6. Não foram
+  modificados firewall, antivírus, DNS, VPN, políticas ou protocolos do adaptador.
+- Captura: preparado auxiliar ignorado .tools/network-diagnosis/capture-database-handshake.ps1.
+  Pktmon exigiu elevação, concedida pelo usuário no Windows. A primeira execução
+  parou sem capturar por diferença de codificação da mensagem de status em português;
+  leitura corrigida. A segunda capturou cerca de sete segundos, exclusivamente SYN
+  do IP resolvido do pooler e porta 5432, sem envio de payload ou credenciais.
+  A captura foi parada e o auxiliar remove seu filtro ao terminar; não fica serviço
+  de diagnóstico em execução. ETL/TXT/status permanecem somente em .tools ignorada.
+- Evidência da captura: 30 eventos de transmissão, nenhum de recepção, nenhum evento
+  real de descarte nem contador de descarte diferente de zero; nenhum SYN-ACK.
+  Houve três tentativas SYN registradas ao atravessar os componentes até a interface
+  Wi-Fi. Isso reforça falha no caminho/endpoint após a entrega à interface, sem
+  identificar ainda qual equipamento ou serviço interrompe a comunicação.
+- Verificação externa: revisão automática rejeitou a tentativa inicial de enviar
+  hostname/porta ao Check-Host sem autorização específica para esse terceiro.
+  A ação não foi executada e a rejeição foi informada ao usuário. O usuário depois
+  autorizou expressamente compartilhar somente o hostname do pooler e porta 5432,
+  sem senhas, tokens ou dados do banco. A verificação foi iniciada em dois nós,
+  EUA e Alemanha; ambos estabeleceram TCP ao pooler (aproximadamente 38 ms e 177 ms). Não foram enviados
+  project ref, nomes de produtos ou credenciais ao serviço externo.
+- Rede ativa: leitura do Windows mostrou o computador ainda ligado à rede de
+  visitantes da instituição naquele momento. Isso não comprova qual rede foi usada
+  em tentativas históricas, mas impediu tratar a troca relatada antes como isolada
+  e confirmada. Solicitado desligar o Wi-Fi do celular, usar dados móveis e conectar
+  o computador ao roteador. Após a nova confirmação do usuário, Windows mostrou
+  que a rede de visitantes deixou de ser a ativa, e TCP 5432 respondeu imediatamente.
+  Não registrar SSID, IP local ou MAC da rede institucional neste relatório público.
+- Recuperação: iniciada API Java por backend-api/start-local.ps1 com as mesmas
+  configurações locais, TLS verify-full, role restrita e bootstrap desativado.
+  Helper de inicialização PID 15128; API PID 20080 em 8080. Frontend existente
+  PID 13600 em 8081 preservado. Processos são transitórios; conferir portas em
+  futuras sessões, sem assumir que os PIDs ainda pertencem a estes serviços.
+- Verificações reais: GET /products HTTP 200 retornou seis produtos ativos. Login
+  usando exclusivamente o campo de senha já guardado no documento privado retornou
+  200; GET /auth/me confirmou a identidade solicitada e role ADMIN. GET /admin/products
+  retornou 200 com sete produtos, um inativo. Segredos/JWT ficaram apenas em memória
+  e foram descartados; não foram impressos nem enviados a serviços externos.
+- Frontend: localhost:8080 respondeu e permitiu CORS para 127.0.0.1:8081. Chrome
+  isolado carregou /produtos com HTTP 200 e consulta real /api/v1/products 200;
+  login da interface respondeu 200 e abriu o painel com Produtos/Adicionar produto.
+  Navegação pontual sem suíte de testes, sem criação/edição/exclusão de produtos.
+  Auxiliar .tools/network-diagnosis/inspect-local-pages.cjs ignorado; credenciais
+  lidas localmente, tráfego com autenticação limitado a loopback e sem HAR/trace.
+  Solicitada reabertura da prévia do catálogo no Codex; UI respondeu queued.
+- Estado operacional final: catálogo e login restabelecidos após a troca real de
+  rede e inicialização da API. Não foram redefinidas senhas, alterados produtos,
+  expostas tabelas públicas, reaplicadas migrations ou criados novos projetos.
+- Arquivo público alterado: este relatório único, incluindo a entrada 031 pendente
+  de publicação. Auxiliares/logs/capturas são ignorados. Sem novos testes executados,
+  sem commit/push. A verificação final confirmou catálogo e login reais, preservando as contas.
+
+### 2026-10-25 — 033 — Palácio de memória para continuidade sem o chat
+
+- Pedido: preservar o contexto inteiro do projeto para perda do chat ou troca de
+  IA. Mantido o arquivo único de contexto/histórico, sem nova base de memória
+  paralela nem dependência de um serviço, plugin, conta ou formato proprietário.
+- Alterações: este documento passou a ter entrada de retomada, cartão de estado
+  com datas, salas com âncoras estáveis, ordem de leitura e prompt pronto para
+  outra IA. Acrescentados registro de decisões/reversões, mapa de arquivos,
+  diagrama da comunicação, fluxos de negócio, limites DTO/banco, configuração sem
+  segredos, roteiro de recuperação e diagnóstico por sintoma, evidências e pendências.
+- Conferência de fontes: rotas/componentes frontend, taxonomy, client HTTP,
+  cache, footer, assets/créditos e manifests; controllers/DTOs/serviços/segurança
+  Java, POM e application.yml; migrations, exemplos públicos de ambiente,
+  iniciadores, READMEs, regras aplicáveis e estado Git local. Nenhum env real ou
+  documento privado de acesso foi aberto para construir esta memória.
+- Precisão: a última operação real continua sendo a recuperação de 21/10, com
+  seis ativos, sete no painel e login ADMIN confirmado. A inspeção documental em
+  25/10 não revalida esses dados ou disponibilidade. Resumo antes ambíguo entre
+  catálogo vazio de 19/10 e operação de 21/10 foi esclarecido; a linha do tempo
+  anterior foi integralmente preservada. Divergência histórica do horário de
+  sábado anotada sem mudar o SiteFooter ou assumir uma nova decisão da loja.
+- Entrada para outros agentes: AGENTS.md agora aponta para a seção 0, exige
+  conferir estado/fonte e atualizar também o resumo; README aponta para o palácio
+  e o prompt. São apontadores para a mesma memória, não históricos duplicados.
+- Arquivos públicos desta entrega: CONTEXTO_DO_PROJETO.md, AGENTS.md e README.md.
+  `.agents/` já existia não rastreada, foi apenas identificada como material local
+  opcional e foi preservada. Não confundir seus exemplos com arquitetura implementada
+  ou garantir sua presença em um clone. Pendências 031/032 permanecem no arquivo.
+- Escopo: sem alteração de código, dependências, interface, serviços, rede, contas
+  ou banco. Nenhuma suíte de testes, build, login, consulta remota ou processo da
+  aplicação foi executado; as verificações desta entrega são de documentação.
+- Verificações documentais: 53 links locais e 10 referências de âncora conferidos,
+  nove âncoras estáveis únicas, blocos de código balanceados e sequência histórica
+  001–033 completa; zero problemas encontrados. As 32 entradas anteriores foram
+  preservadas ao editar apenas o resumo e acrescentar esta entrada. git diff --check
+  aprovado. Gitleaks na seleção integral dos três documentos, sem ocorrências;
+  nenhuma validação de aplicação atribuída a esta tarefa documental.
+- Publicação: HEAD local observado 921e8a5; nenhuma nova aprovação, commit ou push.
+  A proposta anterior cobria somente o relatório de recuperação e não foi aceita
+  antes deste pedido. Proposta para a nova seleção dos três documentos:
+  `docs: organiza palácio de memória do projeto`, para o repositório informado
+  pelo usuário, origin/main, sujeita a aprovação explícita atual. Esta memória
+  está salva localmente; não afirmar que já está no GitHub ou que é backup do banco.
+
 <!-- Próximas entradas: usar data real America/Sao_Paulo e próximo número sequencial.
 Registrar pedido; alterações/motivos; arquivos; verificações/resultados; pendências.
 Não registrar segredos. Preservar o histórico e atualizar as seções de estado atual. -->
+
+### 2026-11-06 — 034 — Sala dos Agentes no painel administrativo
+
+- **Pedido:** escritório pixelado com agentes e subagentes em trabalho ou
+  descanso, barra com nomes e contagens, reuniões cara a cara, balões e
+  movimentação.
+- **Entrega:** aba protegida em /admin, 22 avatares-base cobrindo os 18 perfis
+  da pasta de habilidades, especialidades da equipe e orquestração. Instâncias
+  adicionais aparecem a partir dos sinais recebidos. As criaturas pixeladas
+  são originais e têm cores e símbolos ligados à função. Os avatares se movem
+  entre as três áreas, com layout rolável em telas pequenas e respeito a
+  reduzir movimento. Reuniões concorrentes são organizadas em dois lugares,
+  sem colocar o mesmo avatar em dois encontros ao mesmo tempo.
+- **Contratos:** GET /api/v1/admin/agent-office protegido pela configuração
+  Spring Security existente. O coletor recebe eventos de tarefa, modelo,
+  subagentes e ferramentas de comunicação reconhecidas. Persiste somente
+  campos estruturados no diário local ignorado. Balões são frases
+  ilustrativas. O banco e o modelo de credenciais permanecem os da aplicação.
+- **Arquivos:** .gitignore, integração em AdminPage, rota admin e cliente
+  api.ts, pasta features/admin/agent-office, configuração application.yml,
+  AgentOfficeController, AgentOfficeService, scripts/agent-office, testes Java
+  de leitura e autorização, e este documento.
+- **Validação:** coletor conferido com eventos de teste de início, delegação,
+  contato e encerramento, comprovando que mensagens e IDs brutos não são
+  gravados. A suíte Maven passou com 34 testes, incluindo acesso de
+  ADMIN/SUPER_ADMIN e bloqueio de acesso anônimo, sem papel e de conta
+  desativada. Prettier, ESLint, TypeScript e a compilação do frontend
+  passaram. A prévia respondeu HTTP 200 na porta 8081. No Chromium com
+  respostas simuladas da API, foram verificados o login da interface, os 22
+  perfis, a atualização automática, reunião com balões, retorno ao repouso,
+  navegação entre abas, tela de 390 px, reduzir movimento e logout.
+- **Operação local:** instalador executado e .codex/hooks.json criado neste
+  checkout. A confiança precisa ser autorizada no Codex pelo responsável.
+  A API real não iniciou porque a conexão JDBC expirou. Uma tentativa
+  independente de TCP para a porta 5432 do pooler também falhou. A sessão
+  administrativa real e o disparo dos hooks por um subagente real seguem
+  pendentes de validação. A atividade das sessões que não carregarem os hooks
+  não é observada pela sala.
+- **Publicação:** seleção de 16 arquivos da entrega revisada com Gitleaks
+  sem achados e git diff --check limpo. Proposta: feat: adiciona Sala dos
+  Agentes ao painel administrativo, destino origin/main, aguardando
+  aprovação explícita. AGENTS.md, README.md e a pasta .agents fazem parte de
+  trabalho anterior e ficam fora desta seleção.
+
+### 2026-11-06 — 035 — Banco indisponível e mensagem de login corrigida
+
+- **Pedido:** investigar a inicialização local e o aviso de credenciais
+  inválidas com os dados de acesso habituais.
+- **Diagnóstico:** frontend na 8081 respondeu HTTP 200. A API na 8080
+  permaneceu sem resposta, inclusive na nova tentativa de subir o Java.
+  O log de inicialização confirmou timeout na conexão PostgreSQL, antes
+  da autenticação do banco. As sondagens TCP para o Session pooler (5432),
+  Transaction pooler (6543) e conexão direta falharam nesta máquina.
+  A integração Supabase relatou COMING_UP em consultas separadas e também
+  recusou a leitura SQL. Portanto, não foi possível verificar a conta
+  administrativa ou o catálogo no banco nesta intervenção.
+- **Alteração:** AuthService passou a retornar HTTP 503 com mensagem de
+  indisponibilidade ao receber falha do serviço de autenticação ou de
+  acesso a dados. Essa condição deixa de ser registrada como tentativa
+  de credenciais inválidas. O tratamento de credenciais inválidas
+  continua retornando HTTP 401. Nenhum dado, senha, permissão ou
+  configuração do banco foi alterado.
+- **Arquivos:** AuthService.java, AuthControllerTest.java e este documento.
+- **Validação:** 35 testes Maven passaram, incluindo teste com o
+  repositório de usuários indisponível, cadeia real de autenticação,
+  resposta 503, ausência de token e de auditoria de senha inválida.
+  A tentativa com a instalação real continua bloqueada pelo banco.
+- **Retomada:** aguardar projeto ativo e consulta SQL bem-sucedida, testar
+  TCP 5432 a partir deste computador e iniciar a API com a configuração
+  existente. Validar catálogo e login. Se o Supabase estiver acessível
+  pela integração e o TCP local continuar bloqueado, repetir a comparação
+  de redes registrada na entrada 032.
+- **Publicação:** proposta fix: diferencia falha do banco no login, para
+  origin/main, somente os três arquivos desta entrada. A Sala dos Agentes
+  segue com seleção separada. Commit e push aguardam aprovação.
+
+### 2026-11-06 — 036 — Retomada do projeto Supabase pausado
+
+- **Evidência:** captura do painel mostrou o projeto pausado e o botão
+  Resume project. A integração confirmou o estado INACTIVE.
+- **Ação:** solicitei uma única retomada do projeto existente pela integração
+  Supabase. O serviço aceitou a solicitação e passou a mostrar COMING_UP.
+  A ação é a retomada do projeto pausado, sem alteração de plano, senhas,
+  privilégios ou schema.
+- **Verificação local:** frontend respondeu HTTP 200, configuração e
+  ferramentas Java estavam disponíveis e o bootstrap administrativo estava
+  desabilitado. O pooler voltou a aceitar a conexão TCP. A primeira tentativa
+  de inicializar a API chegou ao PostgreSQL via pooler e recebeu ENOTFOUND
+  para a combinação de projeto e role enquanto a retomada estava em curso.
+- **Última verificação às 20h43 (America/Sao_Paulo):** o Supabase ainda
+  informava COMING_UP e a consulta SQL recente foi recusada. A API local
+  continua indisponível.
+- **Pendência:** aguardar estado ativo e consulta SQL bem-sucedida, confirmar
+  a conta e o catálogo no banco e iniciar a API novamente. Se o pooler
+  continuar retornando ENOTFOUND após o banco voltar, comparar o host do
+  Session pooler no diálogo Connect com o host do JDBC local e verificar
+  a role de runtime antes de alterar a configuração.
+
+### 2026-11-06 — 037 — Retomada do Supabase permanece pendente
+
+- **Evidência:** o usuário continuou vendo o aviso de pausa no painel. Às
+  20h55 (America/Sao_Paulo), mais de 20 minutos após a solicitação aceita
+  da entrada 036, a integração ainda retornava COMING_UP. A consulta de
+  leitura SELECT 1 continuou recusada. O frontend escutava na 8081 e a API
+  na 8080 seguia indisponível.
+- **Ação:** conferi o estado e registrei a divergência entre o painel e o
+  status da integração para encaminhamento ao suporte do Supabase.
+  A retomada em andamento não foi repetida. Alteração apenas neste documento.
+- **Retomada:** depois de o Supabase indicar estado ativo e aceitar SQL,
+  iniciar a API local e validar catálogo e login. Se o painel continuar
+  indicando pausa, o suporte pode inspecionar o estado da operação aceita.
+
+### 2026-11-06 — 038 — Supabase ativo e serviços locais reiniciados
+
+- **Pedido:** reiniciar a Dogmania após o usuário informar que o banco voltou.
+- **Banco:** a integração confirmou ACTIVE_HEALTHY. A consulta somente leitura
+  encontrou seis produtos ativos e confirmou a conta administrativa ativa.
+- **Ação:** encerrei a instância anterior do Vite deste checkout, aguardei as
+  portas ficarem livres e iniciei a API Java e uma nova instância do frontend
+  com a configuração local existente. Ambos ficaram em execução.
+- **Verificações:** página /admin HTTP 200 e API /api/v1/products HTTP 200 com
+  seis produtos ativos. A API aceitou a origem do frontend. Uma tentativa de
+  login com conta fictícia retornou o HTTP 401 esperado. O login com a senha
+  real fica para o responsável validar no painel.
+- **Arquivos:** atualização deste documento. Nenhuma mudança no código, banco
+  ou configuração de execução nesta entrega.
+
+### 2026-11-07 — 039 — Mapa original do escritório e nomes dos avatares
+
+- O usuário pediu para reproduzir o cenário da imagem e mostrar o nome de
+  cada agente ao passar o mouse por cima.
+- O PNG de 1.254 × 1.254 pixels foi copiado do anexo e servido com a mesma
+  soma SHA-256. A imagem inteira ocupa uma área quadrada. Os avatares foram
+  posicionados nas estações de trabalho, na mesa da gerência, nas duas mesas
+  de reunião e na área de descanso da ilustração.
+- Os nomes aparecem nos balões por mouse, foco de teclado ou toque. Os
+  balões das conversas continuam acompanhando as reuniões. O mapa conserva
+  rolagem própria no celular e a preferência de movimento reduzido.
+- O trabalho ficou em agent-office-map.png, AgentOffice.tsx, PixelArt.tsx,
+  agent-office.css, model.ts e neste documento.
+- Prettier, ESLint, TypeScript e a compilação de produção passaram. No
+  Chromium, uma sessão isolada com dados de teste confirmou o PNG servido,
+  a proporção, os nomes com mouse, teclado e toque, a reunião e a rolagem
+  móvel. A prévia local respondeu HTTP 200.
+- A seleção proposta para publicação reúne 17 arquivos da Sala dos Agentes
+  e deste registro, com revisão Gitleaks sem achados. O commit proposto é
+  feat: adiciona Sala dos Agentes com escritório pixelado, em origin/main.
+  A correção do login tem seleção separada. Commit e push aguardam aprovação.
+
+### 2026-11-07 — 040 — Escritório redesenhado em pixel art e agentes caminhando
+
+- O pedido foi manter a planta do escritório, redesenhar o fundo no estilo
+  pixelado dos personagens e permitir caminhada inclusive em repouso.
+- O cenário agora é desenhado em SVG no frontend, numa grade de 312 × 312
+  unidades. O desenho reproduz a disposição da gerência, da reunião, da
+  copa, das seis estações centrais, da sala técnica, da recepção e do
+  descanso. A cópia PNG da entrada 039 foi substituída.
+- Os avatares circulam por pontos conectados pelos corredores e pelas
+  portas. Quem trabalha circula perto da estação ou segue para reuniões.
+  Quem está em repouso passeia pela recepção, pela copa, pelo lounge e
+  pelo hall, com o mesmo status de atividade. O avatar em passeio pausa
+  ao receber mouse, foco ou seleção. Os balões de reunião são exibidos
+  na chegada e o modo de movimento reduzido mantém as posições estáticas.
+- Os arquivos desta alteração são AgentOffice.tsx, OfficeMap.tsx,
+  officeLayout.ts, useOfficeWalk.ts, agent-office.css e este documento.
+  A cópia anterior agent-office-map.png saiu do checkout.
+- Prettier, ESLint, TypeScript, build de produção e git diff --check
+  passaram. Foram verificados 55 destinos e 81 trechos contra as
+  paredes da planta. No Chromium com eventos simulados, foram verificados
+  o desenho nativo, caminhada em repouso, pausa e nome ao apontar,
+  reunião, toque e movimento reduzido.
+- A proposta atual de publicação reúne os 19 arquivos revisados da Sala
+  dos Agentes e o palácio de memória, em origin/main. A mensagem proposta
+  é feat: adiciona Sala dos Agentes com escritório pixelado. A seleção
+  substitui a proposta da entrada 039 e segue aguardando aprovação.
+
+### 2026-11-07 — 041 — Caminhada visível com movimento reduzido
+
+- O usuário informou que os avatares permaneciam parados. A leitura da
+  preferência nativa do Windows confirmou animações de interface
+  desativadas. No Chromium com movimento reduzido, a versão anterior
+  manteve os 22 avatares nas mesmas posições. O relógio do mapa
+  era interrompido pela preferência e impedia a caminhada.
+- A caminhada agora inicia por padrão nos dois modos. O movimento
+  reduzido corta o balanço dos sprites, enquanto o painel oferece
+  Pausar caminhada e Retomar caminhada. A pausa mantém posições
+  estáticas e as mudanças de atividade continuam atualizando o painel.
+- O ajuste ficou em useOfficeWalk.ts, AgentOffice.tsx, agent-office.css
+  e neste documento.
+- Em sessão isolada no Chromium, os 22 avatares em repouso se deslocaram
+  tanto com movimento reduzido quanto na configuração padrão. Foram
+  verificados pausa, retomada, nome por toque e rolagem móvel.
+  Prettier, ESLint, TypeScript, compilação de produção e git diff --check
+  passaram.
+- A proposta da entrada 040 abrange estes ajustes nos mesmos 19 arquivos.
+  A seleção foi revisada novamente e aguarda aprovação de commit e push.
+
+### 2026-11-07 — 042 — Cães e gatos com circulação pelas portas e desvio
+
+- O usuário pediu portas que permitissem passagem, avatares de cães e gatos
+  pixelados, distribuição pelo escritório inteiro e desvio de outros
+  avatares sem sobreposição.
+- Os 22 perfis-base usam 11 cães e 11 gatos, com pelagens e acessórios
+  ligados ao perfil. A planta ganhou portas desenhadas abertas, com
+  correção da largura útil das passagens da recepção. Os pontos de
+  passeio e estações ficam em nove áreas, com destinos reservados para
+  distribuir os pets.
+- A grade de navegação considera a largura do avatar nas portas, nas
+  paredes e no mobiliário principal. A simulação central verifica o
+  deslocamento inteiro de cada pet antes de atualizar sua posição. O
+  trajeto pode desviar pelo lado ou usar outra porta. Em passagens
+  estreitas, um pet pode recuar e dar vez ao outro. Quando não há rota
+  livre, o pet espera e recalcula. Os passeios podem mudar de destino
+  após um bloqueio persistente. Deslocamentos de reunião recebem
+  prioridade e a janela de exibição subiu para 24 segundos.
+- Os arquivos de implementação estão em features/admin/agent-office,
+  incluindo OfficeMap.tsx, PixelArt.tsx, officeLayout.ts, officeNavigation.ts,
+  officeTraffic.ts e useOfficeWalk.ts. Os testes de regressão ficam em
+  tests/agent-office/traffic.test.ts e são executados com
+  bun test tests/agent-office/traffic.test.ts.
+- Os cinco testes passaram, incluindo as 11 aberturas desenhadas, desvio
+  por outra porta, passagem ao lado, encontro em sentidos opostos e
+  circulação de 22 pets por 60 segundos sem sobreposição. Passaram
+  também 32 simulações com reunião sob tráfego. No Chromium com eventos
+  de teste foram verificados os 22 cães e gatos, o movimento, a separação,
+  os balões, a reunião, a pausa e o toque. Prettier, ESLint, TypeScript,
+  build de produção e git diff --check passaram.
+- A seleção atual reúne 22 arquivos revisados e substitui a proposta da
+  entrada 041. A mensagem proposta é feat: adiciona Sala dos Agentes
+  com escritório pixelado, com destino origin/main. Commit e push
+  aguardam aprovação.
+
+### 2026-11-08 — 043 — Pets maiores, mais contraste e circulação de todos
+
+- O usuário ainda via avatares parados e pediu personagens maiores e mais
+  visíveis no escritório.
+- O tamanho passou de cerca de 10,3 para 14 unidades da planta, um aumento
+  aproximado de 36%. O fundo foi escurecido e os pets receberam contorno
+  claro e sombra. O tamanho do desenho também define a distância física
+  usada na navegação. As portas, o corredor lateral e as folgas em torno
+  de duas mesas foram ajustados para acomodar o novo porte.
+- Mouse e foco deixam o nome visível durante a caminhada. Os pets em trabalho
+  visitam a estação periodicamente e usam destinos distribuídos quando a
+  rota fica congestionada. Pausas decorativas foram encurtadas. O botão de
+  pausa geral e as esperas por trânsito ou reunião seguem disponíveis.
+- As mudanças ficaram em AgentOffice.tsx, OfficeMap.tsx, agent-office.css,
+  officeLayout.ts, officeNavigation.ts, officeTraffic.ts, useOfficeWalk.ts,
+  tests/agent-office/traffic.test.ts e neste arquivo.
+- Os sete testes Bun passaram. Foram simulados 60 segundos com 22 pets em
+  repouso, em trabalho e nos dois estados misturados, sem sobreposição.
+  No Chromium com dados simulados e movimento reduzido, os 22 caminharam,
+  inclusive o avatar com foco, e o tamanho medido no desktop foi 37,7 px.
+  O contraste, a pausa e o toque foram verificados. Prettier, ESLint,
+  TypeScript, build de produção e git diff --check passaram.
+- A proposta da entrada 042 abrange os ajustes nos mesmos 22 arquivos.
+  A seleção foi revisada novamente e aguarda aprovação de commit e push.
+
+### 2026-11-08 — 044 — Passeios variados, plantas nos cantos e sprites nítidos
+
+- O usuário relatou passeios repetitivos, pets passando sobre plantas e
+  avatares com bordas borradas. Pediu plantas apenas nos cantos e enviou uma
+  referência de pixel art para o redesenho.
+- Cada pet guarda até cinco destinos recentes, incluindo destinos abandonados
+  por bloqueio. O planejamento prioriza locais novos e troca de destino
+  depois de ceder a passagem. Em congestionamentos persistentes, um trajeto
+  local alcançável pode usar um destino antigo. O desvio e a separação
+  entre avatares continuam ativos.
+- O mapa mantém quatro vasos, um por canto, com obstáculos na mesma
+  posição dos desenhos. A estante superior esquerda foi estreitada para
+  acomodar o vaso. A planta das salas e as onze aberturas foram mantidas.
+- Os cães e gatos foram desenhados em SVG com poses de frente e de
+  perfil, grade de 18×18, contorno escuro e cores de pelagem contrastantes.
+  As formas usam coordenadas inteiras e bordas nítidas. O filtro de sombra
+  aplicado ao sprite foi retirado.
+- Arquivos alterados em features/admin/agent-office incluem OfficeMap.tsx,
+  PixelArt.tsx, agent-office.css, officeLayout.ts, officeNavigation.ts e
+  officeTraffic.ts. Também foram atualizados tests/agent-office/traffic.test.ts
+  e este arquivo.
+- Os oito testes Bun passaram, incluindo 60 segundos com 22 pets em
+  repouso, trabalho e modo misto. A nova regressão verifica os quatro
+  obstáculos e a variedade de destinos. No Chromium com sessão
+  simulada, os 22 pets se moveram, sem sobreposição nas amostras, e foram
+  conferidos os vasos, a grade dos sprites e as bordas sem filtro.
+  Prettier, ESLint, TypeScript e build de produção passaram. O build
+  emitiu avisos de empacotamento de dependências.
+- A proposta da entrada 042 inclui esta revisão nos mesmos 22 arquivos.
+  A mensagem é feat: adiciona Sala dos Agentes com escritório pixelado,
+  com destino origin/main. Commit e push aguardam aprovação.
+
+### 2026-11-08 — 045 — Perfis mais encorpados e passada de quatro patas
+
+- O usuário achou os avatares de perfil muito magros e pediu que os
+  animais caminhassem seguindo a referência pixelada.
+- Os desenhos laterais de cão e gato foram refeitos em grade SVG 18×18,
+  com tronco mais largo, cabeça e focinho em destaque, cauda e quatro
+  patas em duas profundidades. As poses frontais foram preservadas.
+- Na caminhada lateral, as patas alternam em pares diagonais ao longo
+  de quatro fases. O corpo se mantém nivelado. A pose é espelhada
+  conforme o sentido. A pausa congela o deslocamento. A preferência
+  de movimento reduzido desativa a passada animada enquanto o pet
+  continua percorrendo o mapa.
+- Arquivos da revisão: PixelArt.tsx e agent-office.css em
+  features/admin/agent-office, além deste arquivo. A navegação, as
+  colisões e a planta do escritório seguem com a implementação de 044.
+- No Chromium com sessão simulada, foram conferidos os 22 avatares,
+  as quatro fases de cães e gatos nos dois sentidos, a alternância
+  das patas, a pausa e o movimento reduzido. Os oito testes de
+  circulação, Prettier, ESLint, TypeScript e build passaram.
+- Esta revisão integra a seleção de 22 arquivos da Sala dos Agentes.
+  A mensagem proposta é feat: adiciona Sala dos Agentes com escritório
+  pixelado, para origin/main. Commit e push aguardam aprovação.
+
+### 2026-11-08 — 046 — Orquestração de agentes e revisão técnica
+
+- O usuário solicitou que cada pedido sobre a Dogmania passe pela coordenação
+  dos agentes disponíveis, com especialistas escolhidos conforme o trabalho
+  e revisão de cada implementação.
+- A regra de execução ficou no AGENTS.md da raiz. O líder distribui as frentes,
+  coordena dependências e integra os resultados. A revisão cabe a um
+  especialista diferente do implementador. Se a sessão limitar a delegação,
+  o líder organiza rodadas ou informa a limitação.
+- Três revisões desta entrega foram feitas em paralelo. Engenharia revisou
+  atribuições e dependências. QA e segurança revisaram critérios de aceite,
+  dados privados e publicação. Continuidade revisou o registro e o prompt
+  de retomada. O líder integrou os apontamentos nos dois documentos.
+- Arquivos alterados nesta entrega incluem AGENTS.md e CONTEXTO_DO_PROJETO.md.
+  As referências entre os documentos foram conferidas. git diff --check
+  e Gitleaks passaram na revisão da seleção. As evidências da aplicação
+  estão nas entradas das respectivas verificações.
+- A seleção pendente da Sala dos Agentes e da documentação de trabalho
+  reúne 23 arquivos. A proposta é feat: adiciona Sala dos Agentes e fluxo
+  de revisão técnica, para origin/main. Commit e push aguardam aprovação.

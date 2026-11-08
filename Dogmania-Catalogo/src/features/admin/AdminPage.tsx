@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
+  Bot,
   Eye,
   EyeOff,
   LoaderCircle,
@@ -34,7 +35,11 @@ export const fieldClass =
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Não foi possível concluir a operação.";
 
-export function AdminPage() {
+const AgentOffice = lazy(() =>
+  import("./agent-office/AgentOffice").then(({ AgentOffice }) => ({ default: AgentOffice })),
+);
+
+export function AdminPage({ showOffice }: { showOffice: boolean }) {
   const client = useQueryClient();
   const [session, setSession] = useState<AdminUser | null>(null);
   const [checking, setChecking] = useState(true);
@@ -50,6 +55,7 @@ export function AdminPage() {
     const clear = () => {
       setSession(null);
       client.removeQueries({ queryKey: ["products", "admin"] });
+      client.removeQueries({ queryKey: ["admin", "agent-office"] });
     };
     window.addEventListener("dogmania-auth-changed", clear);
     localStorage.removeItem("dogmania-admin-session-v1");
@@ -80,7 +86,7 @@ export function AdminPage() {
       </main>
     );
   return session ? (
-    <AdminDashboard session={session} onLogout={() => api.removeToken()} />
+    <AdminDashboard session={session} showOffice={showOffice} onLogout={() => api.removeToken()} />
   ) : (
     <AdminLogin onLogin={setSession} />
   );
@@ -206,7 +212,86 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
   );
 }
 
-function AdminDashboard({ session, onLogout }: { session: AdminUser; onLogout: () => void }) {
+function AdminDashboard({
+  session,
+  showOffice,
+  onLogout,
+}: {
+  session: AdminUser;
+  showOffice: boolean;
+  onLogout: () => void;
+}) {
+  return (
+    <main className="min-h-screen bg-[#f5f6fa] text-foreground">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-accent">
+              <Store className="h-6 w-6" />
+            </span>
+            <div>
+              <p className="font-display text-lg font-extrabold">Dogmania</p>
+              <p className="text-xs text-muted-foreground">Painel administrativo</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm text-muted-foreground md:block">
+              Olá, {session.name}
+            </span>
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-bold hover:bg-muted sm:inline-flex"
+            >
+              <Store className="h-4 w-4" /> Ver loja
+            </a>
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted"
+            >
+              <LogOut className="h-4 w-4" /> Sair
+            </button>
+          </div>
+        </div>
+      </header>
+      <nav
+        aria-label="Seções administrativas"
+        className="mx-auto flex max-w-7xl flex-wrap gap-2 px-4 pt-4 sm:px-8"
+      >
+        {[
+          { label: "Produtos", icon: Package, office: false },
+          { label: "Sala dos Agentes", icon: Bot, office: true },
+        ].map(({ label, icon: Icon, office }) => (
+          <Link
+            key={label}
+            to="/admin"
+            search={office ? { aba: "agentes" } : {}}
+            aria-current={office === showOffice ? "page" : undefined}
+            className={
+              office === showOffice
+                ? "inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
+                : "inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold hover:bg-muted"
+            }
+          >
+            <Icon className="size-4" /> {label}
+          </Link>
+        ))}
+      </nav>
+      {showOffice ? (
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8">
+          <Suspense fallback={<p role="status">Abrindo a Sala dos Agentes…</p>}>
+            <AgentOffice />
+          </Suspense>
+        </div>
+      ) : (
+        <ProductDashboard />
+      )}
+    </main>
+  );
+}
+
+function ProductDashboard() {
   const { products, isLoading, error, refetch, refresh } = useProducts(true);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -239,39 +324,7 @@ function AdminDashboard({ session, onLogout }: { session: AdminUser; onLogout: (
     }
   };
   return (
-    <main className="min-h-screen bg-[#f5f6fa] text-foreground">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-accent">
-              <Store className="h-6 w-6" />
-            </span>
-            <div>
-              <p className="font-display text-lg font-extrabold">Dogmania</p>
-              <p className="text-xs text-muted-foreground">Administração do catálogo</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground md:block">
-              Olá, {session.name}
-            </span>
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-bold hover:bg-muted sm:inline-flex"
-            >
-              <Store className="h-4 w-4" /> Ver loja
-            </a>
-            <button
-              onClick={onLogout}
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted"
-            >
-              <LogOut className="h-4 w-4" /> Sair
-            </button>
-          </div>
-        </div>
-      </header>
+    <>
       <div className="mx-auto max-w-7xl px-4 py-7 sm:px-8 sm:py-10">
         <div className="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div>
@@ -464,6 +517,6 @@ function AdminDashboard({ session, onLogout }: { session: AdminUser; onLogout: (
           )}
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </>
   );
 }

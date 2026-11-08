@@ -3,6 +3,7 @@ package com.dogmania.api.controller;
 import com.dogmania.api.config.SecurityConfig;
 import com.dogmania.api.dto.ProductDTO;
 import com.dogmania.api.security.*;
+import com.dogmania.api.service.AgentOfficeService;
 import com.dogmania.api.service.ProductService;
 import com.dogmania.api.service.UploadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /** Production security chain and JWT parser; only business/storage dependencies are mocked. */
-@WebMvcTest(controllers={ProductController.class, AdminProductController.class, UploadController.class}, properties={
+@WebMvcTest(controllers={ProductController.class, AdminProductController.class, AgentOfficeController.class, UploadController.class}, properties={
     "dogmania.security.jwt.secret-key=test-only-secret-key-at-least-32-bytes-long",
     "dogmania.security.jwt.expiration-ms=3600000", "dogmania.cors.allowed-origins=http://localhost:8081"})
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class, JwtTokenProvider.class})
@@ -41,6 +42,7 @@ class ProductControllerTest {
     @MockitoBean ProductService products;
     @MockitoBean CustomUserDetailsService users;
     @MockitoBean UploadService uploads;
+    @MockitoBean AgentOfficeService office;
     ProductDTO product() {
         return ProductDTO.builder().id(ID).title("Coleira").description("Coleira ajustável")
             .price(new BigDecimal("49.90")).category("Acessórios")
@@ -59,6 +61,19 @@ class ProductControllerTest {
             .password("unused").roles(role).disabled(disabled).build());
         return "Bearer "+token("admin@example.test",SECRET,System.currentTimeMillis()+60000,"dogmania-api");
     }
+    @Test void officeSnapshotRequiresAnActiveAdministrator() throws Exception {
+        when(office.snapshot()).thenReturn(new AgentOfficeService.Snapshot(List.of(), List.of(), null, 1L));
+        String path = "/api/v1/admin/agent-office";
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("Authorization", auth("USER", false))).andExpect(status().isForbidden());
+        mvc.perform(get(path).header("Authorization", auth("ADMIN", true))).andExpect(status().isUnauthorized());
+        verify(office, never()).snapshot();
+        mvc.perform(get(path).header("Authorization", auth("ADMIN", false)))
+            .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.participants").isArray());
+        mvc.perform(get(path).header("Authorization", auth("SUPER_ADMIN", false))).andExpect(status().isOk());
+    }
+
     @Test void publicCatalogDoesNotCreateSession() throws Exception {
         when(products.getProducts(any(),any(),any(Pageable.class))).thenReturn(new PageImpl<>(Objects.requireNonNull(List.of(product()))));
         var result=mvc.perform(get("/api/v1/products")).andExpect(status().isOk())

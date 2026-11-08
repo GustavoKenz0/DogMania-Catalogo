@@ -45,6 +45,7 @@
 /.vscode/*
 !/.vscode/settings.json
 **/.tools/
+/.codex/hooks.json
 **/*.log
 hs_err_pid*
 replay_pid*

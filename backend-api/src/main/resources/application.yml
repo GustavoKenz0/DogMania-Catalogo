@@ -40,6 +40,8 @@ spring:
 
 # --- Segurança JWT ---
 dogmania:
+  agent-office:
+    journal: ${DOGMANIA_AGENT_OFFICE_JOURNAL:../.private/agent-office}
   storage:
     enabled: ${STORAGE_ENABLED:false}
     project-url: ${SUPABASE_URL:}

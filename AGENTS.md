@@ -27,6 +27,48 @@ Os relatórios já existentes são registros históricos, anteriores a essa regr
 Respeite também as instruções específicas de subdiretórios, incluindo o arquivo
 `Dogmania-Catalogo/AGENTS.md` e as orientações de integração com Lovable.
 
+## Retomada entre chats e IAs
+
+O palácio de memória fica no próprio `CONTEXTO_DO_PROJETO.md`; não depende do chat.
+Na primeira leitura de uma retomada:
+
+1. Comece pela seção 0 (entrada, mapa das salas e prompt de retomada), depois leia
+   as seções 1 a 6 e as entradas históricas relevantes ao pedido.
+2. Confira caminhos, fontes e `git status --short`; resultados com data, processos,
+   integrações e aprovações de outra sessão não são fatos atuais nem permissões novas.
+3. Preserve o trabalho local existente. Cópias em `.tools/` não são o código real;
+   materiais opcionais não rastreados não estão automaticamente no repositório remoto.
+4. Antes de encerrar uma entrega, atualize o resumo e o mapa afetados, além de
+   acrescentar o histórico. Registre evidência, hipótese, pendência e reversão de
+   forma distinta; não deixe um incidente resolvido como se ainda fosse o estado atual.
+5. Para troca de IA, use o prompt da seção 0.5. Nunca inclua conteúdos de envs reais
+   ou do documento privado nesse prompt. Manter memória não é autorização para
+   iniciar serviços, executar seed/migrations ou recriar contas automaticamente.
+
+## Orquestração e revisão técnica
+
+Para cada pedido sobre a Dogmania, o agente principal atua como líder técnico.
+Mobilize todos os agentes disponíveis em frentes úteis à tarefa, inclusive
+para diagnóstico e revisão. Escolha as especialidades pelo impacto do pedido,
+como engenharia, frontend, backend, dados, QA, segurança, operação ou documentação.
+
+1. Defina para cada agente o objetivo, o escopo, os arquivos sob sua
+   responsabilidade e as evidências esperadas. Trabalhe em paralelo nas
+   frentes independentes, com um responsável por arquivo de edição.
+   Organize as dependências em etapas. Compartilhe apenas o contexto
+   necessário, sem credenciais ou dados privados.
+2. Encaminhe toda implementação a um especialista diferente de quem implementou.
+   O revisor confere o diff, os riscos e os testes relevantes. O líder resolve
+   os achados, confere a versão integrada e consolida o resultado.
+3. Use rodadas se as vagas forem limitadas. Quando a sessão não oferecer agentes
+   ou não permitir revisão independente, faça a verificação possível e informe
+   essa limitação. Confirme a disponibilidade em cada chat. O kit local
+   .agents/ é uma referência opcional de papéis subordinada a estas instruções.
+4. Nas entregas com alterações, registre no histórico único os papéis
+   acionados, o que foi revisado, as validações e as pendências. A delegação
+   segue as permissões do pedido. O líder solicita a aprovação explícita
+   do usuário para commit e push.
+
 ## Documento privado de acessos
 
 O usuário solicitou expressamente um documento local com os acessos configurados.

@@ -8,5 +8,12 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
-  component: AdminPage,
+  validateSearch: (search: Record<string, unknown>): { aba?: "agentes" } =>
+    search.aba === "agentes" ? { aba: "agentes" } : {},
+  component: AdminRoute,
 });
+
+function AdminRoute() {
+  const { aba } = Route.useSearch();
+  return <AdminPage showOffice={aba === "agentes"} />;
+}
