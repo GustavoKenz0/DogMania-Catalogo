@@ -1,6 +1,6 @@
 # Dogmania — palácio de memória do projeto
 
-Última atualização: **08/11/2026** (America/Sao_Paulo).
+Última atualização: **09/11/2026** (America/Sao_Paulo).
 
 Este é o arquivo único de contexto e relatório contínuo solicitado pelo usuário.
 Uma nova IA deve começar por ele e pelo `AGENTS.md`, depois conferir os arquivos
@@ -24,12 +24,12 @@ Existe um único histórico oficial: a seção 7 deste documento.
 | Onde está o código real neste computador? | Raiz em `Desktop/Dogmania-Catalogo`; frontend na subpasta homônima e API em `backend-api/`. Conferir o caminho em outra máquina. |
 | Como a aplicação se comunica? | Navegador → API Java → PostgreSQL no Supabase; Storage é opcional. |
 | Como iniciar na instalação já configurada? | `Iniciar Dogmania.cmd` na raiz; frontend 8081 e API 8080. Ver seção 5. |
-| Última operação real confirmada? | 08/11/2026: consulta somente leitura ao Supabase ativo encontrou seis itens de teste e zero outros ativos (048). O último login real confirmado com senha foi em 21/10/2026 (032). |
-| O que foi conferido em 08/11/2026? | Build SSR para Vercel, segurança e empacotamento Java, sessão durante 503 e ensaios locais de banco (048). Os testes da Sala dos Agentes estão nas entradas 044 e 045. |
-| Último commit local e remoto confirmado? | 11d6730 — feat: adiciona Sala dos Agentes e fluxo de revisão técnica, confirmado no GitHub em 08/11/2026 (047). |
-| O que ainda não foi publicado? | Preparação Vercel/Render e operação (048), incluindo registro pós-publicação (047) e correção do diagnóstico de login. O kit local .agents/ está fora da seleção. |
+| Última operação real confirmada? | 09/11/2026: o catálogo recuperou a consulta sozinho após o Render iniciar (054). Login, CRUD e rotas diretas já passaram em homologação (053). |
+| O que foi conferido em 08/11/2026? | SSR Netlify com links diretos, sessão e CRUD em Chrome, CORS da prévia e tempo de partida do Render (053). Os ensaios Java e SQL anteriores estão na entrada 048. |
+| Último commit local e remoto confirmado? | ea733a0 — feat: prepara homologação na Vercel e no Render, confirmado no GitHub em 08/11/2026 (049). |
+| O que ainda não foi publicado? | A preparação da API está no GitHub no commit ea733a0. Configuração Netlify, recuperação de ociosidade, scripts de backup e registros 049–054 aguardam aprovação de commit e push. O frontend está em prévia privada. |
 | Onde ficam os acessos? | Somente em `.private/ACESSOS_DO_SISTEMA.local.txt` e envs locais protegidos; valores não fazem parte desta memória pública. |
-| Qual é a entrega mais recente? | Preparação para homologação na Vercel e no Render (048). A Sala dos Agentes e a orquestração técnica foram publicadas na entrada 047. |
+| Qual é a entrega mais recente? | Prévia privada atualizada com recuperação automática do catálogo. O projeto Netlify de produção foi reservado. Ver testes, backup e pendências na entrada 054. |
 
 ### 0.2. Mapa das salas
 
@@ -729,6 +729,43 @@ colocar o avatar em repouso. Atividade sem novos sinais por 45 minutos expira
 para evitar avatares presos após uma queda. A interface mostra as 30 atividades
 recentes do diário, com janela de 24 horas e limite de 1.500 eventos lidos.
 
+### 5.4. Prévia privada na Netlify
+
+A Netlify Free é a opção escolhida para testar o frontend comercial. O
+netlify.toml da raiz executa o build na subpasta Dogmania-Catalogo com Node 24,
+Bun 1.4.3 e lockfile congelado. Informe VITE_API_URL com a base HTTPS da API
+de homologação, terminada em /api/v1. O preset Netlify do Nitro gera os
+arquivos estáticos em dist e a função SSR em .netlify/functions-internal.
+A função precisa ir junto com os estáticos para servir os links diretos.
+
+A CLI foi instalada sob .tools/netlify-cli e a sessão ficou em
+.private/netlify-cli. Com o projeto privado, a CLI build --offline --context
+deploy-preview empacotou a função. O deploy manual usou --no-build, um alias
+de homologação, --dir com o caminho explícito de dist e --functions com o
+caminho explícito de .netlify/functions-internal dentro do frontend. O
+alias mantém uma origem HTTPS estável para CORS sem ligar Git ou publicar
+em produção. Conferir visibilidade da prévia antes de outro upload.
+
+### 5.5. Recuperar dados e validar alertas
+
+Para um backup lógico das três tabelas da aplicação, use
+[scripts/backup-restauracao-dogmania.ps1](scripts/backup-restauracao-dogmania.ps1)
+com binários PostgreSQL 17, credencial do dono em memória, conexão de sessão
+e CA oficial. A origem é consultada em leitura. O ensaio recria o esquema
+pelas migrations da versão, restaura em PostgreSQL descartável no loopback,
+compara o conteúdo e testa o contrato de acesso e auditoria. O dump guarda
+dados sensíveis e fica protegido em .private. Preserve as migrations
+correspondentes e guarde uma cópia segura fora do computador para recuperação.
+Objetos do Storage, configuração do provedor e segredos de runtime exigem
+um procedimento separado quando usados.
+
+No Render, verifique /health/ready e o destino de e-mail de falhas do
+workspace. Para o ensaio de entrega, associe o endereço do responsável a
+um monitor no UptimeRobot e use Test Notification para DOWN e UP. Registre
+o recebimento de ambas as mensagens. Use o endereço público definitivo
+quando estiver pronto. Sondas de cinco minutos durante a homologação
+interferem na medição de partida após ociosidade do Render Free.
+
 <a id="pendencias"></a>
 ## 6. Últimas evidências e pendências conhecidas
 
@@ -783,17 +820,22 @@ relatórios de alterações serão acrescentados somente neste arquivo.
 | Interface | Entrada 028: build/tipos/lint e conferência de fade/bounce desktop/toque; entrada 032: navegação/login reais em Chrome isolado | Cobertura funcional completa, novos tamanhos e regressões após mudança |
 | Banco/TLS | Instalação e role confirmadas por JDBC em 19/10; operação real e inspeção Supabase em 21/10 | Compatibilidade e TLS em outro ambiente ou após mudança de schema/credencial |
 | Testes | Suítes e seus resultados são históricos nas entradas correspondentes | Não foram executados testes de aplicação nesta entrega de documentação |
-| Publicação | 08/11/2026: commit 11d6730 com 23 arquivos confirmado em refs/heads/main do GitHub (047) | Conferir a ref novamente em outra sessão e obter aprovação para a próxima seleção |
+| Publicação | 08/11/2026: commit ea733a0 com 24 arquivos confirmado em refs/heads/main do GitHub (049) | Conferir a ref novamente em outra sessão e obter aprovação para a próxima seleção |
 
 ### 6.2. Pendências registradas e limites de escopo
 
-- **Continuidade desta entrega:** o comprovante local da entrada 047 integra
-  a seleção revisada da entrada 048, que aguarda aprovação.
-- **Produção:** o código está preparado para homologação na Vercel e no Render.
-  Faltam a lista real de produtos, ambientes e credenciais próprias, proteção
-  de login no gateway hospedado, ensaio de restauração do Supabase hospedado e
-  confirmação de alertas e do WhatsApp com a equipe da loja.
-  Siga o [roteiro de lançamento](README.md#homologar-a-loja-na-vercel-e-no-render).
+- **Continuidade desta entrega:** os registros 049–054 são posteriores à
+  publicação do commit ea733a0 e permanecem no checkout local.
+- **Produção:** frontend em prévia privada na Netlify Free e API Render
+  conectada ao Supabase de homologação. O CORS da API aceita a origem
+  HTTPS exata dessa prévia. O catálogo agora se recupera automaticamente
+  após ociosidade, com latência observada de 151,94 s na primeira consulta
+  (054). A latência e a escolha do provedor da API de produção ainda
+  bloqueiam a divulgação. O projeto de produção na Netlify Free e as
+  variáveis privadas da API estão preparados. Falta configurar o serviço
+  Java definitivo, conferir o catálogo real e confirmar o recebimento dos
+  alertas e do WhatsApp. Ver seção 5.4 e o
+  [roteiro de homologação](tests/README.md#homologação-do-catálogo-e-do-painel).
 - **Storage:** configuração remota e políticas precisam de revisão antes de ativar
   upload real. Upload desligado com URL de imagem informada é estado previsto.
 - **Qualidade:** ampliar homologação integrada Java/PostgreSQL e interface,
@@ -2518,3 +2560,191 @@ Não registrar segredos. Preservar o histórico e atualizar as seções de estad
   feat: prepara homologação na Vercel e no Render, para origin/main.
   Commit e push aguardam aprovação. Implantação, rotação de credenciais,
   alertas hospedados e recebimento no WhatsApp dependem de homologação.
+
+### 2026-11-08 — 049 — Publicação da preparação para Vercel e Render
+
+- O usuário aprovou o commit e o push dos 24 arquivos revisados na entrada 048.
+  Engenharia conferiu branch, índice, destino e hashes. QA e segurança
+  verificaram a seleção, o modelo de variáveis e a ausência de caminhos
+  privados. Continuidade revisou o registro e a forma de conectar o Render.
+- Foi publicado em origin/main o commit ea733a0bafa1c871185e83756d30099457d24ee4,
+  com a mensagem feat: prepara homologação na Vercel e no Render.
+  A seleção coincidiu com a revisão por SHA-256 e com os blobs gravados.
+  git diff --check e Gitleaks passaram. A referência remota passou de
+  11d6730 para ea733a0 e foi confirmada por git ls-remote.
+- A configuração de Docker e health check já pode ser importada pelo Render
+  a partir do GitHub. A integração Render foi oferecida ao usuário para
+  autorizar a própria conta. O serviço, o banco de homologação e a URL
+  pública ainda precisam de verificação antes do primeiro deploy.
+- O kit local .agents/ ficou fora da seleção. Este comprovante foi
+  registrado localmente após o envio, no próprio palácio de memória.
+
+### 2026-11-08 — 050 — Acesso local ao Render pela CLI
+
+- O usuário informou que o cartão de integração não apareceu no chat e
+  pediu para continuar. A alternativa foi a CLI portátil oficial do Render
+  v2.36.0 para Windows, extraída em .tools/render-cli-2.36.0.
+- O ZIP veio da versão oficial render-oss/cli. O SHA-256 foi conferido
+  antes da extração e render --version confirmou a versão. A sessão
+  interativa de render login foi iniciada no computador para autorização
+  do responsável no navegador e seleção do workspace.
+- A CLI usa .private/render-cli para configuração e autenticação local.
+  A pasta .private possui ACL restrita e é ignorada pelo Git.
+- Os revisores confirmaram o commit ea733a0 no GitHub, os parâmetros
+  Docker/health check e a necessidade de um banco separado de homologação.
+  A autorização do Render e a criação do serviço ainda estavam pendentes
+  quando esta entrada foi registrada.
+
+### 2026-11-08 — 051 — API de homologação ativa no Render
+
+- O usuário autorizou a CLI do Render no navegador e escolheu criar o
+  projeto Supabase separado se a cotação fosse gratuita. A organização
+  indicou US$ 0 por mês. Foi criado dogmania-homologacao, referência
+  jpxuspfggmdoboqtleeg, em us-east-1. A role dogmania_api ficou restrita,
+  e as três migrations do repositório foram aplicadas na ordem.
+- No workspace My Workspace, foi criado dogmania-api-homologacao como
+  Web Service Docker Free em Virginia, com raiz backend-api, deploy
+  automático desligado e health check /health/ready. O URL é
+  https://dogmania-api-homologacao.onrender.com. Para a Vercel, a base
+  da API de homologação termina em /api/v1. A origem HTTPS da prévia
+  precisa ser configurada no CORS quando estiver definida.
+- O primeiro deploy falhou na confiança da cadeia TLS do pooler.
+  O usuário confirmou o host aws-0-us-east-1.pooler.supabase.com.
+  A CA oficial do Supabase foi conferida com a cópia local e entregue
+  pela variável SUPABASE_DB_CA_PEM. O JDBC usa o Session pooler na
+  porta 5432, verify-full e SingleCertValidatingFactory.
+- O deploy dep-dbo9r6c9v7es73elvsgg ficou Live com o commit
+  ea733a0bafa1c871185e83756d30099457d24ee4. /health/live,
+  /health/ready e o catálogo público retornaram HTTP 200. /auth/me
+  anônimo retornou 401. Login e /auth/me autenticados retornaram 200.
+  Cadastro, leitura, edição, desativação, reativação e exclusão
+  passaram pelo HTTPS. O produto e o administrador descartáveis
+  foram removidos, com contagens zero confirmadas.
+- As credenciais exclusivas ficaram nas variáveis do Render e na
+  pasta privada local. Os agentes revisaram os parâmetros do deploy,
+  a separação dos ambientes e o uso da CA no runtime. O ensaio
+  hospedado concentrou-se na API de homologação.
+
+### 2026-11-08 — 052 — Preparação local da publicação do frontend na Vercel
+
+- O usuário solicitou publicar pela máquina local. A CLI oficial Vercel
+  65.12.1 foi preparada em .tools/vercel-cli. O usuário autorizou no
+  navegador e a CLI confirmou a sessão em .private/vercel-cli.
+- A origem main do GitHub e o checkout foram conferidos no commit
+  ea733a0bafa1c871185e83756d30099457d24ee4. O frontend foi extraído
+  desse commit para uma cópia isolada em .tools, sem env local.
+  Com Bun 1.4.3, bun install --frozen-lockfile e
+  bun run build --mode vercel passaram. A saída tem configuração v3,
+  função SSR para Node.js 24 e o URL da API Render no bundle.
+- Os agentes revisaram a conta e o fluxo de deploy, o SHA e as rotas,
+  e a integração HTTPS com a API de homologação. A CLI listou apenas
+  uma equipe, Kenzo, no plano Hobby, sem projeto Dogmania. A Vercel
+  reserva esse plano para uso pessoal não comercial. A etapa remota
+  ficou pendente de uma equipe compatível. A origem CORS será definida
+  quando existir um endereço Vercel do projeto.
+
+### 2026-11-08 — 053 — Prévia privada Netlify e testes do catálogo e admin
+
+- Pedido: explicar a cota mensal do Netlify Free, abrir /produtos e /admin
+  por URL direta e testar antes de divulgar. O plano contabiliza 300 créditos
+  por equipe a cada ciclo. Build de prévia sem custo por publicação,
+  com tráfego e execução ainda contabilizados.
+- Adicionados netlify.toml, detecção do preset Netlify no Vite e exclusões
+  dos artefatos gerados em .gitignore e ESLint. O build exige URL HTTPS
+  pública da API. Engenharia de publicação implementou e testou, acesso
+  revisou SSR, empacotamento, privacidade e a partida do Render. Os
+  presets Vercel e Cloudflare foram revalidados.
+- O responsável autorizou a CLI no navegador. O projeto vazio de homologação
+  foi criado na equipe Free, sem Git conectado. O rascunho com alias estável
+  ficou pronto, com função SSR Node 24 e sem deploy de produção. Sem sessão,
+  /produtos, /admin e um CSS retornaram 401. A URL principal retornou 404.
+- O Render recebeu só a origem exata da prévia no CORS. O redeploy do mesmo
+  commit ea733a0 ficou Live. Readiness, catálogo e preflight do login
+  retornaram 200. Origem externa recebeu 403 sem cabeçalho de permissão.
+- Build Netlify CLI e teste direto da função passaram. /, /produtos, /admin
+  e /produto/ID devolveram HTML SSR. O atalho administrativo redirecionou
+  para /admin e uma rota inexistente retornou 404. TypeScript e ESLint dos
+  configs alterados passaram. O lint geral acusou duas formatações antigas
+  em SiteFooter.tsx e um aviso em button.tsx.
+- Chrome automatizado em desktop e viewport de celular testou o mesmo
+  bundle em loopback, com ponte de teste para a API HTTPS real. Passaram
+  acesso direto e recarga, imagem do carrossel, rejeição de login inválido
+  e acesso anônimo, login válido e sessão após recarga, busca e filtros,
+  cadastro, leitura, validação de preço, edição, mudança de estoque,
+  exclusão e logout. Os links de WhatsApp no cartão e no detalhe
+  continham destino e nome corretos. Nenhuma mensagem foi enviada.
+- A auditoria no Supabase de homologação confirmou INSERT, três UPDATE
+  e DELETE do produto descartável. Produto e usuário de teste foram
+  removidos. O catálogo de homologação voltou a zero produtos.
+- A primeira requisição HTTPS ao catálogo expirou aos 100 s. O log do
+  Render indicou inicialização Java de 116,79 s, 127,23 s desde o início
+  do processo. Com a API ativa, a consulta respondeu em 2,04 s. No Chrome
+  com atraso simulado, o erro apareceu em 16 s e o botão Tentar novamente
+  recuperou o catálogo com a API ativa. A partida após ociosidade segue
+  como bloqueio para divulgação.
+- Em uma janela Chrome de teste, com a sessão do proprietário da Netlify,
+  /produtos e /admin abriram diretamente e após recarga com HTTP 200.
+  O catálogo consultou o Render diretamente pelo CORS real. O CRUD
+  completo foi executado no build local, com API e banco reais de teste.
+- Ensaios adicionais no checkout: Bun com lockfile congelado, 40 testes
+  Maven em cópia sem env local, oito testes de movimento da Sala dos
+  Agentes e contrato de migrations, acesso e restauração PGlite passaram.
+- O catálogo real e a confirmação de recebimento pelo WhatsApp ficam
+  para o aceite da loja. A entrega ainda depende de aprovação específica
+  para commit e push.
+
+### 2026-11-09 — 054 — Recuperação do catálogo, preparação de produção e ensaio de backup
+
+- Pedido: resolver os pontos 1, 2 e 4 do lançamento. Mantido o escopo
+  gratuito e separado o aceite comercial do catálogo e do WhatsApp.
+- Frontend passou a aguardar prontidão somente no navegador e para API
+  HTTPS onrender.com. Leituras podem aguardar /health/ready e tentar
+  novamente uma vez. Escritas aguardam prontidão antes do envio e não
+  são reenviadas automaticamente. UI informa que o serviço pode estar
+  iniciando. Teste em tests/catalog/render-startup-check.ts cobre 128 s
+  simulados, sondas compartilhadas, 503/HTML, 404, sessão e SSR.
+- TypeScript, ESLint dos arquivos alterados e build Netlify passaram.
+  A função SSR e os assets foram enviados para o alias privado existente
+  de homologação. A rota anônima continuou retornando HTTP 401.
+- Chrome em viewport móvel executou o build com a origem exata da prévia
+  e requisições HTTPS diretas à API Render. A rota SSR apareceu em 0,64 s.
+  O catálogo carregou após 151,94 s, com oito sondas, sem clicar em
+  Tentar novamente e sem aviso de indisponibilidade. O HTML foi servido
+  pelo artefato de teste local, sem alterar a proteção da prévia.
+- Criado projeto distinto de produção na Netlify Free, sem deploy público
+  e sem integração Git. A URL principal retornou 404. A configuração
+  privada da API foi preparada com role restrita, TLS verify-full,
+  JWT independente e CORS da origem definitiva. Ainda falta provedor
+  da API de produção compatível com o orçamento e teste final de login
+  e catálogo. O Render Free segue reservado para homologação.
+- Os projetos Supabase originais e de teste estão ativos e separados.
+  A base candidata a produção tinha sete produtos, seis ativos, cinco
+  destes identificados como exemplos, e duas contas administrativas
+  ativas. A consulta foi somente leitura. O aceite dos itens continua
+  pendente antes de expor o catálogo ao público.
+- O pg_dump direto ficou bloqueado por timeout TCP na rede atual. O
+  ensaio real usou uma consulta somente leitura via HTTPS, com o
+  snapshot das três tabelas cifrado no PostgreSQL com chave pública
+  OpenPGP. O arquivo cifrado e a chave privada ficaram em .private.
+  A cópia foi restaurada em PostgreSQL 17.11 isolado no loopback em
+  8,1 s. Os fingerprints coincidiram para sete produtos, duas contas
+  administrativas e 27 registros de auditoria. O contrato SQL de RLS,
+  grants, CRUD e imutabilidade da auditoria passou. O cluster foi parado.
+  O ensaio cobre os dados da aplicação. Objetos do Storage e configuração
+  externa ficam fora do backup. Nenhuma alteração na origem foi necessária.
+  O ensaio offline pode ser repetido nesta máquina com
+  .tools/restore-dogmania-https-local.ps1, PostgreSQL 17 e o backup e
+  chave da pasta privada. A revisão automática bloqueou a remoção
+  recursiva das cópias locais descartáveis. Elas ficaram sob ACL privada
+  com o PostgreSQL parado. O fluxo pg_dump nativo passou no parser, mas
+  o ensaio hospedado por esse caminho depende de a porta 5432 voltar.
+- O Render já tem e-mail de falhas ativo no workspace, sem override
+  para o serviço de teste, e health check em /health/ready. A entrega
+  do alerta ainda precisa ser confirmada. UptimeRobot Free permite
+  simular DOWN e UP sem desligar a aplicação, após login e vínculo do
+  contato do responsável. Evitar sondas frequentes ao Render Free
+  durante a validação da primeira visita após ociosidade.
+- Publicação implementou a recuperação, revisão conferiu concorrência e
+  reenvio, monitor revisou os alertas e recuperação executou o ensaio de
+  backup. Configuração, código e histórico ainda aguardam aprovação
+  explícita para commit e push.

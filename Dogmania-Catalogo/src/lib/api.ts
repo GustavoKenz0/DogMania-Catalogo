@@ -5,6 +5,22 @@ const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1"
   /\/$/,
   "",
 );
+const API_URL = URL.canParse(API_BASE) ? new URL(API_BASE) : null;
+const RENDER_READY_URL =
+  API_URL?.protocol === "https:" && API_URL.hostname.endsWith(".onrender.com")
+    ? new URL("/health/ready", API_URL).href
+    : null;
+const REQUEST_TIMEOUT_MS = 15_000;
+const RENDER_STARTUP_TIMEOUT_MS = 160_000;
+const RENDER_PROBE_INTERVAL_MS = 4_000;
+const RENDER_READY_VALID_MS = 30_000;
+const RENDER_UNAVAILABLE = "O serviço não ficou disponível a tempo. Tente novamente.";
+export const apiStartupNotice = RENDER_READY_URL
+  ? "Se o serviço estiver iniciando, isso pode levar alguns minutos."
+  : null;
+let renderReadyUntil = 0;
+let renderReadiness: Promise<boolean> | undefined;
+
 const TOKEN_KEY = "dogmania-auth-token";
 const EXPIRY_KEY = "dogmania-auth-expiry";
 export const isAdminRole = (role: string) => role === "ADMIN" || role === "SUPER_ADMIN";
@@ -22,6 +38,42 @@ export class ApiError extends Error {
   }
 }
 
+async function probeRenderReadiness(url: string) {
+  const deadline = Date.now() + RENDER_STARTUP_TIMEOUT_MS;
+  let remaining = deadline - Date.now();
+  while (remaining > 0) {
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        credentials: "omit",
+        redirect: "error",
+        signal: AbortSignal.timeout(Math.min(REQUEST_TIMEOUT_MS, remaining)),
+      });
+      const status = (await response.json().catch(() => null)) as { status?: string } | null;
+      if (response.ok && status?.status === "UP") {
+        renderReadyUntil = Date.now() + RENDER_READY_VALID_MS;
+        return true;
+      }
+    } catch {
+      // Render can return a loading page or close the connection while starting.
+    }
+    const delay = Math.min(RENDER_PROBE_INTERVAL_MS, deadline - Date.now());
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    remaining = deadline - Date.now();
+  }
+  return false;
+}
+
+function waitForRenderReadiness(url: string) {
+  renderReadiness ??= probeRenderReadiness(url).finally(() => {
+    renderReadiness = undefined;
+  });
+  return renderReadiness;
+}
+
+const isHtml = (response: Response) =>
+  /^text\/html\b/i.test(response.headers.get("content-type") ?? "");
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -30,30 +82,69 @@ async function request<T>(
   const headers = new Headers(options.headers);
   if (options.body && !(options.body instanceof FormData))
     headers.set("Content-Type", "application/json");
-  if (authenticated) {
-    const token = api.getToken();
-    if (!token) {
-      api.removeToken();
+  const token = authenticated ? api.getToken() : null;
+  if (authenticated && !token) {
+    api.removeToken();
+    throw new ApiError("Sua sessão terminou. Entre novamente.", 401);
+  }
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const read = !options.method || options.method === "GET" || options.method === "HEAD";
+  const mutation = !read && path !== "/auth/login";
+  const readinessUrl = typeof window !== "undefined" ? RENDER_READY_URL : null;
+  const connectionError = (response?: Response | null) =>
+    new ApiError(
+      mutation
+        ? "Não foi possível confirmar se a operação foi concluída. Confira os dados antes de tentar novamente."
+        : "Não foi possível conectar ao sistema. Verifique a conexão e tente novamente.",
+      response && !response.ok ? response.status : 0,
+    );
+  const send = () => {
+    // A long readiness check may outlive the session that started the request.
+    if (token && api.getToken() !== token) {
       throw new ApiError("Sua sessão terminou. Entre novamente.", 401);
     }
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}${path}`, {
+    return fetch(`${API_BASE}${path}`, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(15000),
+      ...(read ? {} : { redirect: "error" }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       cache: "no-store",
-    });
-  } catch {
-    throw new ApiError(
-      "Não foi possível conectar ao sistema. Verifique a conexão e tente novamente.",
-      0,
-    );
+    }).catch(() => null);
+  };
+
+  if (readinessUrl && !read && (renderReadiness || Date.now() >= renderReadyUntil)) {
+    if (!(await waitForRenderReadiness(readinessUrl))) {
+      throw new ApiError(
+        "O serviço não ficou disponível a tempo. A solicitação não foi enviada.",
+        503,
+      );
+    }
+  }
+
+  let response = await send();
+  if (
+    readinessUrl &&
+    read &&
+    (!response || [502, 503, 504].includes(response.status) || isHtml(response))
+  ) {
+    renderReadyUntil = 0;
+    if (!(await waitForRenderReadiness(readinessUrl))) {
+      throw new ApiError(RENDER_UNAVAILABLE, 503);
+    }
+    response = await send();
+  }
+  if (
+    !response ||
+    (readinessUrl && isHtml(response)) ||
+    (mutation && [502, 504].includes(response.status))
+  ) {
+    renderReadyUntil = 0;
+    throw connectionError(response);
   }
   if (!response.ok) {
-    if (authenticated && response.status === 401) api.removeToken();
+    if (readinessUrl && [502, 503, 504].includes(response.status)) renderReadyUntil = 0;
+    if (token && response.status === 401 && api.getToken() === token) api.removeToken();
     const error = (await response.json().catch(() => null)) as { message?: string } | null;
     throw new ApiError(
       response.status === 401
@@ -65,7 +156,14 @@ async function request<T>(
       response.status,
     );
   }
-  return response.status === 204 ? (undefined as T) : (response.json() as Promise<T>);
+  try {
+    const data = response.status === 204 ? undefined : await response.json();
+    if (readinessUrl) renderReadyUntil = Date.now() + RENDER_READY_VALID_MS;
+    return data as T;
+  } catch {
+    renderReadyUntil = 0;
+    throw connectionError(response);
+  }
 }
 
 const fromDto = (product: ProductDto): Product => ({

@@ -14,7 +14,7 @@ import {
   ShieldCheck,
   Store,
 } from "lucide-react";
-import { api, ApiError, isAdminRole, type AdminUser } from "@/lib/api";
+import { api, ApiError, apiStartupNotice, isAdminRole, type AdminUser } from "@/lib/api";
 import { useProducts } from "@/hooks/useProducts";
 import { type Product } from "@/features/products/model";
 import { ProductEditor } from "./ProductEditor";
@@ -89,7 +89,8 @@ export function AdminPage({ showOffice }: { showOffice: boolean }) {
     return (
       <main className="grid min-h-screen place-items-center bg-muted/30">
         <p role="status" className="flex items-center gap-3 text-muted-foreground">
-          <LoaderCircle className="h-5 w-5 animate-spin" /> Verificando seu acesso…
+          <LoaderCircle className="h-5 w-5 animate-spin" />
+          <span>Verificando seu acesso… {apiStartupNotice}</span>
         </p>
       </main>
     );
@@ -229,6 +230,11 @@ function AdminLogin({ onLogin }: { onLogin: (user: AdminUser) => void }) {
               {busy && <LoaderCircle className="h-4 w-4 animate-spin" />}
               {busy ? "Entrando…" : "Entrar no painel"}
             </button>
+            {busy && apiStartupNotice && (
+              <p role="status" className="text-sm text-muted-foreground">
+                {apiStartupNotice}
+              </p>
+            )}
           </form>
           <Link
             to="/"
@@ -444,7 +450,8 @@ function ProductDashboard() {
               role="status"
               className="flex items-center justify-center gap-3 p-16 text-muted-foreground"
             >
-              <LoaderCircle className="h-5 w-5 animate-spin" /> Carregando produtos…
+              <LoaderCircle className="h-5 w-5 animate-spin" />
+              <span>Carregando produtos… {apiStartupNotice}</span>
             </p>
           ) : error ? (
             <div role="alert" className="p-10 text-center">

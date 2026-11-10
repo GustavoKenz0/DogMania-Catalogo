@@ -34,6 +34,7 @@
 **/.output/
 **/.tanstack/
 **/.nitro/
+/.netlify/
 **/.vinxi/
 **/.wrangler/
 **/.bun-cache/

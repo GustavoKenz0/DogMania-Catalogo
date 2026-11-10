@@ -16,6 +16,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { WHATSAPP_NUMBER } from "@/config/store";
 import type { CatalogCategory, Category } from "@/features/products/model";
 import { useProducts } from "@/hooks/useProducts";
+import { apiStartupNotice } from "@/lib/api";
 
 const departments: {
   category: Category;
@@ -222,6 +223,13 @@ function Index() {
               aria-label="Carregando produtos"
               className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4"
             >
+              <span
+                className={
+                  apiStartupNotice ? "col-span-full text-sm text-muted-foreground" : "sr-only"
+                }
+              >
+                Carregando produtos da loja… {apiStartupNotice}
+              </span>
               {Array.from({ length: 4 }, (_, index) => (
                 <div
                   key={index}
@@ -237,7 +245,6 @@ function Index() {
                   </div>
                 </div>
               ))}
-              <span className="sr-only">Carregando produtos da loja…</span>
             </div>
           ) : featured.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-10 text-center">

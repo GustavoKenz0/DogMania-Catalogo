@@ -2,7 +2,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv, type ConfigEnv } from "vite";
 
-function validateVercelApiUrl(mode: string) {
+function validateHostedApiUrl(mode: string) {
   const value = loadEnv(mode, process.cwd(), "VITE_API_URL").VITE_API_URL;
   const url = value && URL.canParse(value) ? new URL(value) : null;
   if (
@@ -25,10 +25,16 @@ export default function configure(env: ConfigEnv) {
   const vercelBuild =
     env.command === "build" &&
     (env.mode === "vercel" || process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel");
-  if (vercelBuild) validateVercelApiUrl(env.mode);
+  const netlifyBuild =
+    env.command === "build" &&
+    (env.mode === "netlify" ||
+      process.env.NETLIFY === "true" ||
+      process.env.NITRO_PRESET === "netlify");
+  const preset = vercelBuild ? "vercel" : netlifyBuild ? "netlify" : undefined;
+  if (preset) validateHostedApiUrl(env.mode);
 
   return defineConfig({
-    ...(vercelBuild && { nitro: { preset: "vercel" } }),
+    ...(preset && { nitro: { preset } }),
     vite: {
       server: { host: "127.0.0.1", port: 8081, strictPort: true },
     },

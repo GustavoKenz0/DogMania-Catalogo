@@ -1,0 +1,9 @@
+[build]
+  base = "Dogmania-Catalogo"
+  command = "bun run build --mode netlify"
+  publish = "dist"
+
+[build.environment]
+  BUN_FLAGS = "--frozen-lockfile"
+  BUN_VERSION = "1.4.3"
+  NODE_VERSION = "24"

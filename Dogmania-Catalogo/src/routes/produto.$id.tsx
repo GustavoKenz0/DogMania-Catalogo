@@ -7,7 +7,7 @@ import { buildWhatsappDetailLink } from "@/features/products/whatsapp";
 import { formatPrice } from "@/lib/currency";
 import { useProducts } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, apiStartupNotice } from "@/lib/api";
 
 export const Route = createFileRoute("/produto/$id")({
   loader: ({ params }) => params.id,
@@ -37,7 +37,7 @@ function ProdutoDetalhe() {
           role="status"
           className="mx-auto max-w-7xl px-4 py-24 text-center text-muted-foreground"
         >
-          Carregando produto…
+          Carregando produto… {apiStartupNotice}
         </main>
         <SiteFooter />
       </div>

@@ -16,8 +16,9 @@ dist-ssr
 .nitro
 *.local
 
-# Vercel project metadata and build output
+# Hosting project metadata and build output
 .vercel/
+.netlify/
 
 # Wrangler / Cloudflare
 .wrangler/

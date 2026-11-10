@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { CatalogCategory } from "@/features/products/model";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/hooks/useProducts";
+import { apiStartupNotice } from "@/lib/api";
 import { Sparkles, X } from "lucide-react";
 import { matchesCatalogCategory } from "@/features/products/taxonomy";
 
@@ -54,9 +55,11 @@ export function CatalogGrid({
             aria-atomic="true"
             className="mt-1 text-sm text-muted-foreground"
           >
-            {isLoading
-              ? "Carregando catálogo..."
-              : `${filtered.length} ${filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}`}
+            {error
+              ? "Disponibilidade dos produtos ainda não confirmada."
+              : isLoading
+                ? `Carregando catálogo… ${apiStartupNotice ?? ""}`
+                : `${filtered.length} ${filtered.length === 1 ? "produto disponível" : "produtos disponíveis"}`}
           </p>
         </div>
         {activeSubcategory && onClearSubcategory && (
